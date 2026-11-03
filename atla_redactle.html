@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATLA Redactle - Avatar Lore Encyclopedia Game</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --font-cinzel: 'Cinzel', Georgia, serif;
+      --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: #0b0d13;
+      color: #ded6c5;
+    }
+
+    .font-cinzel { font-family: var(--font-cinzel); }
+    .font-mono { font-family: var(--font-mono); }
+
+    /* Redacted Word Block: strictly proportional to word length with letter count centered */
+    .word-token.redacted {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: calc(var(--char-len) * 1.15ch + 0.6rem);
+      min-width: 1.65rem;
+      height: 1.45rem;
+      margin: 1px 1.5px;
+      padding: 0 2px;
+      font-family: var(--font-mono);
+      font-size: 0.73rem;
+      font-weight: 700;
+      color: #f7ca66;
+      background: linear-gradient(145deg, #1d212c, #141620);
+      border: 1px solid #333a4d;
+      border-radius: 4px;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.6), 0 1px 1px rgba(255,255,255,0.03);
+      user-select: none;
+      vertical-align: baseline;
+      transition: all 0.15s ease-in-out;
+      cursor: default;
+      text-align: center;
+      box-sizing: border-box;
+    }
+
+    .word-token.redacted:hover {
+      background: linear-gradient(145deg, #2b3246, #1b1e2c);
+      border-color: #d97706;
+      color: #fef08a;
+      transform: translateY(-1px);
+    }
+
+    /* Scaling for Title Context */
+    h2 .word-token.redacted {
+      height: 2.2rem;
+      font-size: 0.95rem;
+      width: calc(var(--char-len) * 1.25ch + 0.85rem);
+      border-color: #524731;
+      background: linear-gradient(145deg, #2a251b, #191712);
+      color: #fbbf24;
+    }
+
+    /* Scaling for Section Headings */
+    h3 .word-token.redacted {
+      height: 1.75rem;
+      font-size: 0.82rem;
+      width: calc(var(--char-len) * 1.18ch + 0.7rem);
+      border-color: #3f392b;
+    }
+
+    /* Revealed Word Styling */
+    .word-token.revealed {
+      display: inline;
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+      font-weight: inherit;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      padding: 0;
+      margin: 0;
+      transition: background-color 0.4s ease;
+    }
+
+    .word-token.newly-revealed {
+      animation: hitFlash 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      border-radius: 3px;
+      padding: 0 2px;
+    }
+
+    @keyframes hitFlash {
+      0% { background-color: #f59e0b; color: #111; font-weight: 700; }
+      40% { background-color: rgba(245, 158, 11, 0.45); }
+      100% { background-color: transparent; }
+    }
+
+    /* Active Cycling Targets */
+    .word-token.active-occurrence {
+      background-color: #38bdf8 !important;
+      color: #031018 !important;
+      font-weight: 800 !important;
+      border-radius: 4px;
+      padding: 1px 4px;
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.7);
+    }
+
+    .word-token.matched-cycle {
+      background-color: rgba(56, 189, 248, 0.2);
+      border-bottom: 2px solid #38bdf8;
+      border-radius: 2px;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: #0f1118; }
+    ::-webkit-scrollbar-thumb { background: #262a38; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3b4256; }
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col bg-[#0b0d13] text-[#ded6c5]">
+
+  <header class="border-b border-[#212635] bg-[#11131c]/95 sticky top-0 z-40 backdrop-blur-md">
+    <div class="max-w-[1700px] mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Brand & Badges -->
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-600 via-red-600 to-cyan-700 flex items-center justify-center shadow-lg shadow-amber-900/30 ring-1 ring-amber-500/30">
+          <span class="font-cinzel text-lg text-amber-100 font-bold">气</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg font-cinzel font-bold tracking-wider text-amber-200">
+              AVATAR <span class="text-amber-500 text-[11px] px-1.5 py-0.5 rounded border border-amber-500/30 bg-amber-500/10 font-sans tracking-normal font-semibold">REDACTLE</span>
+            </h1>
+            <span id="articleSourceBadge" class="hidden sm:inline-block text-[10px] font-mono uppercase bg-[#1f2330] text-stone-400 px-2 py-0.5 rounded border border-[#2e3447]">
+              CANONICAL ENCYCLOPEDIA
+            </span>
+          </div>
+          <p class="text-[11px] text-stone-400">Includes opening summary lead + history &middot; Badge widths match word lengths</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons & Dropdown -->
+      <div class="flex items-center flex-wrap gap-2 text-xs">
+        
+        <div class="flex items-center bg-[#171a25] rounded-lg px-2.5 py-1.5 border border-[#2c3243]">
+          <span class="text-stone-400 mr-2 text-[11px]">Select:</span>
+          <select id="articleDropdown" class="bg-transparent text-amber-300 font-medium focus:outline-none cursor-pointer max-w-[140px] sm:max-w-none">
+            <option value="zuko">Zuko (Full Article + Lead)</option>
+            <option value="katara">Katara (Full Article + Lead)</option>
+            <option value="aang">Aang (Full Article + Lead)</option>
+            <option value="toph">Toph Beifong (Full Article + Lead)</option>
+            <option value="sokka">Sokka (Full Article + Lead)</option>
+            <option value="azula">Azula (Full Article + Lead)</option>
+            <option value="iroh">Uncle Iroh (Full Article + Lead)</option>
+            <option value="ba-sing-se">Ba Sing Se (Full Article + Lead)</option>
+            <option value="firebending">Firebending (Full Article + Lead)</option>
+            <option value="appa">Appa (Full Article + Lead)</option>
+            <option value="kyoshi">Avatar Kyoshi (Full Article + Lead)</option>
+            <option value="yue">Princess Yue (Full Article + Lead)</option>
+            <option value="omashu">Omashu (Full Article + Lead)</option>
+            <option value="sun-warriors">Sun Warriors (Full Article + Lead)</option>
+          </select>
+        </div>
+
+        <button id="btnRandomCurated" class="px-3 py-1.5 bg-[#1f2330] hover:bg-[#2b3144] text-stone-200 rounded-lg border border-[#343b50] transition flex items-center gap-1.5 font-medium shadow-sm">
+          <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+          <span>Random Canon</span>
+        </button>
+
+        <button id="btnFetchLiveWiki" class="px-3 py-1.5 bg-gradient-to-r from-amber-600/20 to-red-600/20 hover:from-amber-600/30 hover:to-red-600/30 text-amber-300 rounded-lg border border-amber-500/40 transition flex items-center gap-1.5 font-medium shadow-sm">
+          <svg class="w-3.5 h-3.5 text-amber-300 animate-spin hidden" id="liveSpinner" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+          <svg class="w-3.5 h-3.5 text-amber-300" id="liveIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+          <span>Live Random Fandom Wiki</span>
+        </button>
+
+        <button id="btnGiveUp" class="px-2.5 py-1.5 text-stone-400 hover:text-red-400 transition text-[11px] underline">
+          Give Up
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-[1700px] w-full mx-auto p-3 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+    
+    <!-- Article Viewer Section (Left/Center) -->
+    <section class="lg:col-span-8 bg-[#12141d] border border-[#212534] rounded-xl shadow-2xl flex flex-col overflow-hidden min-h-[750px] max-h-[88vh]">
+      
+      <!-- Article Status Bar -->
+      <div class="px-5 py-3 bg-[#161924] border-b border-[#212534] flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center space-x-2 text-xs">
+          <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="font-mono text-stone-300 text-[11px]" id="articleMetaHeading">AVATAR LORE ARCHIVE</span>
+        </div>
+        <div class="flex items-center gap-4 text-xs font-mono text-stone-400">
+          <span>Words: <strong id="statTotalWords" class="text-stone-200">0</strong></span>
+          <span>Redacted: <strong id="statRedactedWords" class="text-amber-400">0</strong></span>
+          <span>Time: <strong id="gameTimer" class="text-stone-200">00:00</strong></span>
+        </div>
+      </div>
+
+      <!-- Main Article Title (Redacted) -->
+      <div class="px-6 py-5 border-b border-[#212534] bg-gradient-to-b from-[#191c28]/40 to-transparent">
+        <div class="text-[11px] uppercase tracking-wider text-amber-500 font-mono font-semibold mb-1">Article Title</div>
+        <h2 id="articleTitleContainer" class="text-2xl sm:text-3xl font-cinzel font-bold text-amber-100 flex flex-wrap gap-1.5 items-center">
+          <!-- Title Tokens -->
+        </h2>
+      </div>
+
+      <!-- Scrollable Article Body -->
+      <div id="articleScrollContainer" class="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6 text-[15px] leading-relaxed text-[#dcd4c3]">
+        <div id="articleFullBody" class="space-y-6">
+          <!-- Full Article Tokens: Initial Lead Section + Headings + Subsequent Subsections -->
+        </div>
+      </div>
+
+      <!-- Bottom Helper Ribbon -->
+      <div class="px-5 py-2.5 bg-[#0f1118] border-t border-[#1f2331] text-[11px] text-stone-400 flex items-center justify-between">
+        <span>Redacted pills show letter count & expand proportionally</span>
+        <span id="activeCycleIndicator" class="font-mono text-cyan-400 hidden">Viewing occurrence 1 of 1</span>
+      </div>
+
+    </section>
+
+    <!-- Side Console & History Panel (Right) -->
+    <aside class="lg:col-span-4 space-y-4">
+      
+      <!-- Guess Console -->
+      <div class="bg-[#12141d] border border-[#212534] rounded-xl p-5 shadow-xl">
+        <label for="guessInput" class="block text-xs uppercase font-mono tracking-wider text-amber-400 font-semibold mb-2">
+          Enter Your Guess
+        </label>
+        
+        <form id="guessForm" class="flex gap-2">
+          <input 
+            type="text" 
+            id="guessInput" 
+            placeholder="e.g. fire, uncle, zuko, water, ba..." 
+            autocomplete="off" 
+            autocorrect="off"
+            spellcheck="false"
+            class="flex-1 bg-[#191c27] border border-[#2e3547] focus:border-amber-500 text-amber-100 text-sm rounded-lg px-3.5 py-2.5 focus:outline-none focus:ring-1 focus:ring-amber-500 transition font-medium"
+          />
+          <button 
+            type="submit" 
+            id="btnSubmitGuess"
+            class="px-5 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-stone-900 font-bold text-sm rounded-lg shadow-md transition transform active:scale-95"
+          >
+            Submit
+          </button>
+        </form>
+
+        <div id="feedbackMessage" class="min-h-[1.5rem] mt-2 text-xs font-mono text-stone-400 flex items-center">
+          Type any character, element, nation, or term to reveal instances.
+        </div>
+
+        <!-- Metric Counter Grid -->
+        <div class="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-[#212534] text-center font-mono">
+          <div class="bg-[#181b26] p-2 rounded-lg border border-[#252a3b]">
+            <span class="block text-[11px] text-stone-400">Guesses</span>
+            <span id="statGuessCount" class="text-lg font-bold text-amber-200">0</span>
+          </div>
+          <div class="bg-[#181b26] p-2 rounded-lg border border-[#252a3b]">
+            <span class="block text-[11px] text-stone-400">Hits</span>
+            <span id="statHitCount" class="text-lg font-bold text-emerald-400">0</span>
+          </div>
+          <div class="bg-[#181b26] p-2 rounded-lg border border-[#252a3b]">
+            <span class="block text-[11px] text-stone-400">Accuracy</span>
+            <span id="statAccuracy" class="text-lg font-bold text-cyan-400">0%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- History Table & Cycling Target List -->
+      <div class="bg-[#12141d] border border-[#212534] rounded-xl shadow-xl overflow-hidden flex flex-col h-[520px]">
+        <div class="px-4 py-3 bg-[#161924] border-b border-[#212534] flex items-center justify-between">
+          <h3 class="text-xs uppercase font-mono tracking-wider text-stone-300 font-semibold flex items-center gap-2">
+            Guess History
+            <span id="historyBadge" class="bg-[#222736] text-stone-400 px-1.5 py-0.5 rounded text-[10px]">0</span>
+          </h3>
+          <span class="text-[11px] text-cyan-400/80">Click row to cycle hits</span>
+        </div>
+
+        <div class="flex-1 overflow-y-auto">
+          <table class="w-full text-left text-xs font-mono border-collapse">
+            <thead class="sticky top-0 bg-[#141620] text-stone-400 border-b border-[#212534] z-10">
+              <tr>
+                <th class="py-2 px-3 w-10 text-stone-500">#</th>
+                <th class="py-2 px-3">Word</th>
+                <th class="py-2 px-3 text-right">Hits</th>
+              </tr>
+            </thead>
+            <tbody id="guessHistoryBody" class="divide-y divide-[#1c202d] text-stone-300">
+              <tr id="emptyHistoryRow">
+                <td colspan="3" class="text-center py-12 text-stone-500 italic">No guesses yet. Redacted numbers indicate letter count!</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </aside>
+  </main>
+
+  <div id="winModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#141620] border-2 border-amber-500/80 rounded-2xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative text-center">
+      <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-amber-600 to-yellow-400 text-stone-950 font-bold flex items-center justify-center mx-auto mb-4 text-3xl shadow-lg shadow-amber-500/20">
+        🪷
+      </div>
+      <h2 class="text-2xl sm:text-3xl font-cinzel font-bold text-amber-200 mb-1">Honor Restored!</h2>
+      <p class="text-stone-400 text-xs sm:text-sm mb-5">You successfully solved the complete Avatar Fandom Wiki article!</p>
+
+      <div class="bg-[#1a1d29] p-4 rounded-xl border border-[#292f41] mb-6 space-y-2">
+        <span class="text-[11px] uppercase text-stone-400 font-mono tracking-wider">Unmasked Article Title</span>
+        <div id="winArticleTitle" class="text-2xl font-bold font-cinzel text-amber-300 tracking-wide">
+          ---
+        </div>
+        <div class="grid grid-cols-3 gap-2 pt-3 border-t border-[#242938] text-xs font-mono text-stone-300">
+          <div>Guesses: <strong id="winTotalGuesses" class="text-amber-300">0</strong></div>
+          <div>Accuracy: <strong id="winAccuracy" class="text-emerald-400">0%</strong></div>
+          <div>Time: <strong id="winTime" class="text-cyan-400">00:00</strong></div>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button id="btnWinNextRandom" class="flex-1 py-3 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-stone-900 font-bold rounded-lg text-sm shadow transition">
+          Play Another Article
+        </button>
+        <button id="btnWinInspect" class="px-4 py-3 bg-[#212534] hover:bg-[#2b3042] text-stone-300 rounded-lg text-sm transition">
+          Inspect Full Article
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* Complete Canonical Articles with Explicit Lead Paragraphs */
+    const COMPREHENSIVE_ARTICLES = {
+      "zuko": {
+        id: "ATLA-01",
+        title: "Zuko",
+        sections: [
+          {
+            heading: null, // Critical opening lead section before History
+            paragraphs: [
+              "Zuko is a powerful Firebending master, born as a prince into the Fire Nation Royal Family and holding the title of Fire Lord from 100 AG until his abdication in 167 AG. Initially the primary antagonist of Team Avatar, Zuko spent three years dedicated to capturing the Avatar to regain his lost honor and the favor of his father, Fire Lord Ozai.",
+              "Zuko is easily recognized by the large burn scar on the left side of his face, which was inflicted upon him by his own father in an Agni Kai duel after Zuko spoke out of turn during a royal military war council. Banished from his homeland along with his wise paternal uncle Iroh, he scoured the world searching for the long-lost Avatar in order to return home."
+            ]
+          },
+          {
+            heading: "History",
+            paragraphs: [
+              "Born in 83 AG to Prince Ozai and Princess Ursa, Zuko was initially viewed by his father with disdain due to his lack of early firebending prodigy compared to his younger sister Azula. Ursa fiercely protected Zuko from Ozai's cruelty until her mysterious disappearance following the sudden death of Fire Lord Azulon.",
+              "At age thirteen, Zuko attended a military war council. When General Bujing proposed sacrificing a division of novice Fire Nation recruits as bait, Zuko voiced passionate outrage. Ozai deemed this insolence an unforgivable insult to the throne. In the subsequent Agni Kai, Zuko refused to duel his father, kneeling in submission. Ozai permanently scarred Zuko's face, stripped him of his birthright, and banished him, declaring he could only return upon presenting the Avatar."
+            ]
+          },
+          {
+            heading: "Pursuit of the Avatar and Inner Conflict",
+            paragraphs: [
+              "Accompanied by Uncle Iroh aboard a small warship, Zuko pursued Avatar Aang across the Southern Water Tribe, the Earth Kingdom, and the North Pole. Despite relentless efforts, Zuko found himself repeatedly outmaneuvered by Team Avatar and obstructed by Admiral Zhao.",
+              "Following the Siege of the North, Zuko and Iroh were branded traitors by Fire Lord Ozai and hunted by Azula. Forced into exile as impoverished fugitives, they adopted the aliases Li and Mushi while operating the Jasmine Dragon teashop in Ba Sing Se. Despite achieving peace, Zuko succumbed to temptation beneath Lake Laogai, siding with Azula to capture the city in exchange for restoration of his royal status."
+            ]
+          },
+          {
+            heading: "Redemption and the Sun Warriors",
+            paragraphs: [
+              "Upon returning home as a celebrated hero, Zuko discovered that regaining his father's approval brought emptiness rather than peace. During the Day of Black Sun, Zuko confronted Ozai directly, utilizing Uncle Iroh's technique of lightning redirection against his father's lethal lightning strike before fleeing the Fire Nation capital.",
+              "Zuko joined Team Avatar at the Western Air Temple. After his firebending weakened due to losing his drive for anger, Zuko and Aang visited the ruins of the Sun Warriors civilization. There, the ancient dragons Ran and Shaw judged them worthy, revealing that firebending is the energy of life, light, and warmth. Zuko later fought Azula in the final Agni Kai, protecting Katara before being crowned Fire Lord and ushering in a global era of harmony."
+            ]
+          }
+        ]
+      },
+      "katara": {
+        id: "ATLA-02",
+        title: "Katara",
+        sections: [
+          {
+            heading: null, // Lead overview
+            paragraphs: [
+              "Katara is a master Waterbender born in the Southern Water Tribe to chieftain Hakoda and Kya. Following the tragic demise of her mother during a raid by the Southern Raiders, Katara was left as the sole remaining waterbender residing in the South Pole and took on pivotal domestic and leadership duties.",
+              "While fishing with her brother Sokka, Katara accidentally cracked open an ancient luminous iceberg, revealing the long-lost Avatar Aang and his sky bison Appa. Recognizing Aang's destiny, Katara embarked on an odyssey to travel to the Northern Water Tribe to formalize her waterbending instruction."
+            ]
+          },
+          {
+            heading: "History",
+            paragraphs: [
+              "During her childhood, Fire Nation forces persistently raided the Southern Water Tribe to capture any waterbender. When Katara was eight, the Southern Raiders invaded under Commander Yon Rha. Kya sacrificed her life by claiming she was the last waterbender to protect young Katara, a tragedy that forged Katara's intense protective drive and signature motherly compassion.",
+              "With her father Hakoda departing south with the adult warriors to resist the Fire Nation armada, Katara raised the village youth alongside her brother Sokka and grandmother Kanna."
+            ]
+          },
+          {
+            heading: "Mastery and Bloodbending",
+            paragraphs: [
+              "Upon arrival at the Northern Water Tribe capital of Agna Qel'a, Katara challenged Master Pakku when he refused to teach females combat waterbending. Demonstrating remarkable prowess, Katara forced Pakku to acknowledge her talent, quickly rising to become the premier waterbender of the era.",
+              "Later, in the Fire Nation, Katara encountered Hama, an escaped Southern prisoner who invented Bloodbending—the horrifying technique of manipulating physical fluids within living organisms. Forced to bend Hama's blood to save Aang and Sokka, Katara abhorred the dark art. In the final Agni Kai, Katara chained Princess Azula and healed Zuko, bringing peace to the Four Nations."
+            ]
+          }
+        ]
+      },
+      "aang": {
+        id: "ATLA-03",
+        title: "Aang",
+        sections: [
+          {
+            heading: null, // Lead overview
+            paragraphs: [
+              "Aang is the last surviving Airbender, a monk of the Air Nomads raised at the Southern Air Temple, and the incarnation of the Avatar preceding Avatar Korra. As the Avatar, Aang was the only individual capable of utilizing all four bending arts: Airbending, Waterbending, Earthbending, and Firebending.",
+              "Fearing the tremendous burden of being revealed as the Avatar at twelve years of age and facing forced separation from his beloved mentor Monk Gyatso, Aang fled on his flying sky bison Appa into a vicious ocean tempest, accidentally triggering the Avatar State and encasing them both in suspended animation within an iceberg for one hundred years."
+            ]
+          },
+          {
+            heading: "History",
+            paragraphs: [
+              "Discovered by siblings Katara and Sokka, Aang emerged into a war-torn world where Fire Lord Sozin had completely annihilated the Air Nomads. Crushed by survivor's guilt, Aang accepted his global duty to defeat Fire Lord Ozai before Sozin's Comet arrived.",
+              "Throughout his journey, Aang learned waterbending from Pakku and Katara, earthbending from Toph Beifong, and firebending from Prince Zuko after learning the Dancing Dragon form from masters Ran and Shaw."
+            ]
+          },
+          {
+            heading: "Energybending and the Hundred Year War",
+            paragraphs: [
+              "Faced with the prospect of killing Fire Lord Ozai, Aang refused to compromise his vegetarian pacifist beliefs. A primordial Lion Turtle answered his internal crisis by bestowing upon him the forgotten art of Energybending.",
+              "During their final duel in the Wulong Forest, Aang entered the Avatar State and subdued Ozai, subsequently stripping him of his firebending abilities permanently and restoring balance to the Four Nations."
+            ]
+          }
+        ]
+      },
+      "toph": {
+        id: "ATLA-04",
+        title: "Toph Beifong",
+        sections: [
+          {
+            heading: null, // Lead overview
+            paragraphs: [
+              "Toph Beifong is an earthbending prodigy and the world pioneer of Metalbending. Born blind into the wealthy and aristocratic Beifong clan of Gaoling, her overprotective parents Lao and Poppy shielded her from the world, considering her helpless and frail.",
+              "In secrecy, Toph learned original earthbending directly from the subterranean badgermoles, learning to perceive the world through seismic sense—the detection of subtle vibrational frequencies traveling through earth and stone."
+            ]
+          },
+          {
+            heading: "History",
+            paragraphs: [
+              "Under the alias The Blind Bandit, Toph dominated Earth Rumble VI as its undefeated champion. When Aang sought an earthbending master who understood waiting and listening, he recruited Toph, who fled her restrictive noble family to accompany Team Avatar.",
+              "While captured by bounty hunters inside an iron transport cage, Toph felt the microscopic particles of unrefined earth remaining within the smelted iron. Channeling seismic sense, she manipulated the metal itself, creating the revolutionary art of Metalbending and breaking free."
+            ]
+          }
+        ]
+      },
+      "sokka": {
+        id: "ATLA-05",
+        title: "Sokka",
+        sections: [
+          {
+            heading: null, // Lead overview
+            paragraphs: [
+              "Sokka is a non-bending warrior and tactician from the Southern Water Tribe, the son of Hakoda and Kya, and the older brother of Katara. Following his father's departure to fight in the Hundred Year War, Sokka became the sole teenage protector of his village.",
+              "Armed with his trusty boomerang, hunting gear, and razor-sharp intellect, Sokka initially relied on skepticism and pragmatism. Upon helping release Aang from the iceberg, Sokka assumed the role of strategic planner and navigator for Team Avatar."
+            ]
+          },
+          {
+            heading: "History",
+            paragraphs: [
+              "Throughout their global travels, Sokka fell in love with Princess Yue at the Northern Water Tribe and later Kyoshi Warrior leader Suki. Overcoming feelings of inadequacy as the non-bender of the group, Sokka studied swordsmanship under Fire Nation master Piandao, forging a distinctive black sword from meteorite ore.",
+              "Sokka conceived the submarine attack for the Day of Black Sun and engineered the hot air balloon engine alongside the Mechanist. During Sozin's Comet, Sokka, Toph, and Suki systematically disabled the Fire Nation imperial airship armada, averting the destruction of the Earth Kingdom."
+            ]
+          }
+        ]
+      },
+      "azula": {
+        id: "ATLA-06",
+        title: "Azula",
+        sections: [
+          {
+            heading: null, // Lead overview
+            paragraphs: [
+              "Azula is the princess of the Fire Nation, daughter of Fire Lord Ozai and Ursa, and younger sister to Zuko. A ruthless perfectionist and tactical mastermind, Azula was favored by Ozai as a natural prodigy capable of generating azure blue flames and lethal lightning.",
+              "Dispatched by Ozai to capture the Avatar and her treasonous brother and uncle, Azula recruited her childhood companions Mai and Ty Lee. She orchestrated the covert overthrow of the Earth Kingdom capital Ba Sing Se by co-opting the secret police force known as the Dai Li."
+            ]
+          },
+          {
+            heading: "History",
+            paragraphs: [
+              "During her youth, Azula exhibited extraordinary firebending genius, drawing deep praise from Ozai while alienating her mother Ursa, whom Azula believed viewed her as a monster. Following her triumph in Ba Sing Se, Azula struck Aang down with lightning during his Avatar State.",
+              "Her unyielding control shattered at the Boiling Rock prison when Mai and Ty Lee chose friendship over terror. Paranoia spiraled out of control as she banished her staff, culminating in her defeat by Katara and Zuko during the final Agni Kai."
+            ]
+          }
+        ]
+      },
+      "iroh": {
+        id: "ATLA-07",
+        title: "Iroh",
+        sections: [
+          {
+            heading: null, // Lead overview
+            paragraphs: [
+              "Iroh, famously renowned as the Dragon of the West, was the crown prince of the Fire Nation, a legendary general, and the Grand Lotus of the secret international society known as the Order of the White Lotus.",
+              "Following the heartbreaking death of his only son Lu Ten during the historic six-hundred-day siege of Ba Sing Se, Iroh abandoned the conquest. He retired from military ambition, focusing his life on wisdom, tea, and supporting his exiled nephew Zuko."
+            ]
+          },
+          {
+            heading: "History",
+            paragraphs: [
+              "Iroh studied waterbending techniques to pioneer lightning redirection, guiding electrical currents safely through the body via the stomach. When Zuko was banished, Iroh accompanied him into exile, serving as a patient moral compass.",
+              "Imprisoned in the Fire Nation following Ba Sing Se's fall, Iroh secretly built formidable physical strength before breaking out during the solar eclipse. At Sozin's Comet, Iroh mobilized the Order of the White Lotus to liberate Ba Sing Se from Fire Nation control."
+            ]
+          }
+        ]
+      },
+      "ba-sing-se": {
+        id: "ATLA-08",
+        title: "Ba Sing Se",
+        sections: [
+          {
+            heading: null, // Lead overview
+            paragraphs: [
+              "Ba Sing Se is the capital city of the Earth Kingdom and the largest metropolis in the known world. Translated as the Impenetrable City, it is famous for its colossal outer wall, which endured a legendary siege led by General Iroh.",
+              "The vast city is physically divided into distinct concentric rings: the Lower Ring populated by incoming refugees; the Middle Ring housing commerce and university scholars; and the affluent Upper Ring where royal palaces and high-ranking military commanders reside."
+            ]
+          },
+          {
+            heading: "History",
+            paragraphs: [
+              "Founded thousands of years ago, Ba Sing Se repelled Fire Nation forces for nearly a century. Behind Earth King Kuei, true authority was wielded by Long Feng and the Dai Li secret police, who brainwashed dissidents beneath Lake Laogai with the mandate that there is no war in Ba Sing Se.",
+              "Azula seized the throne from within by overthrowing the Dai Li, but the city was ultimately reclaimed by Uncle Iroh and the Order of the White Lotus during Sozin's Comet."
+            ]
+          }
+        ]
+      },
+      "firebending": {
+        id: "ATLA-09",
+        title: "Firebending",
+        sections: [
+          {
+            heading: null, // Lead overview
+            paragraphs: [
+              "Firebending is one of the four elemental bending arts and the martial heritage practiced by the people of the Fire Nation. It is characterized by fierce, dynamic, and direct attacks, relying on breath control and inner vitality rather than external raw materials.",
+              "The original masters of Firebending were the ancient Dragons, who understood fire not as a tool of rage and destruction, but as warmth, passion, life, and energy. Notable advanced techniques include lightning generation, lightning redirection, combustionbending, and heat control."
+            ]
+          },
+          {
+            heading: "History",
+            paragraphs: [
+              "Originally granted to humanity by the Fire Lion Turtle during the era of Avatar Wan, firebending was cultivated by the Sun Warriors before becoming militarized by Fire Lord Sozin. Sozin instituted the hunting of dragons as sporting trophies, corrupting the philosophy into one driven by anger and dominance.",
+              "During Sozin's Comet, firebenders experienced a hundredfold increase in power, enabling near-apocalyptic destructive potential."
+            ]
+          }
+        ]
+      },
+      "appa": {
+        id: "ATLA-10",
+        title: "Appa",
+        sections: [
+          {
+            heading: null, // Lead overview
+            paragraphs: [
+              "Appa is Aang's faithful loyal companion and primary animal guide, a giant male flying sky bison with six legs, five stomachs, and a flat beaver-like tail used to generate powerful gusts of wind. Appa was linked with Aang from childhood at the Eastern Air Temple through an ancient ritual of choosing bison calves.",
+              "Appa shared Aang's century-long suspended animation inside an iceberg. As the primary mode of transportation for Team Avatar, he flew them tirelessly across the globe steered by the flight command yip-yip."
+            ]
+          },
+          {
+            heading: "History",
+            paragraphs: [
+              "While Team Avatar investigated the Wan Shi Tong spirit library in the Si Wong Desert, Appa was stolen by sandbenders and traded to a Fire Nation circus in Ba Sing Se. After escaping with the help of Guru Pathik, Appa was captured beneath Lake Laogai by Long Feng before being liberated by Zuko."
+            ]
+          }
+        ]
+      },
+      "kyoshi": {
+        id: "ATLA-11",
+        title: "Avatar Kyoshi",
+        sections: [
+          {
+            heading: null, // Lead overview
+            paragraphs: [
+              "Avatar Kyoshi was the Earth Kingdom-born Avatar immediately preceding Avatar Kuruk and succeeding Avatar Yangchen. Renowned for her imposing physical stature, traditional makeup, golden war fans, and uncompromising justice, Kyoshi lived to be two hundred and thirty years old.",
+              "When the warlord Chin the Conqueror invaded her homeland, Kyoshi refused to surrender. She utilized the Avatar State to sever her peninsula from the mainland, creating Kyoshi Island and causing Chin to plunge to his death. She also founded the Kyoshi Warriors and the Dai Li."
+            ]
+          },
+          {
+            heading: "History",
+            paragraphs: [
+              "Born to criminal daofei parents, Kyoshi grew up as an impoverished servant before her identity as the true Avatar was recognized over Yun. Kyoshi restored stability across the chaotic Earth Kingdom, subduing pirate clans and establishing a legacy of direct, pragmatic justice."
+            ]
+          }
+        ]
+      },
+      "yue": {
+        id: "ATLA-12",
+        title: "Princess Yue",
+        sections: [
+          {
+            heading: null, // Lead overview
+            paragraphs: [
+              "Princess Yue was a beloved princess of the Northern Water Tribe and the daughter of Chief Arnook. Born frail and sickly, her life was saved in infancy when her parents placed her in the sacred Spirit Oasis, where the Moon Spirit Tui imparted a portion of its life essence into her, turning her hair pure white.",
+              "During Team Avatar's visit to the North Pole, Sokka fell deeply in love with Yue, though she was betrothed to warrior Haan. When Admiral Zhao slew the mortal koi fish form of the Moon Spirit, blacking out the sky and stripping all waterbenders of their powers, Yue made the selfless ultimate sacrifice by giving back her borrowed spirit life force, ascending to become the new Moon Spirit."
+            ]
+          },
+          {
+            heading: "History",
+            paragraphs: [
+              "Yue was raised in luxury within Agna Qel'a, dedicated to the welfare of northern citizens. When the Fire Nation armada laid siege to the city, Yue accompanied Sokka and Aang to the Spirit Oasis. Following Zhao's mortal strike against Tui, Yue returned her sacred life essence, restoring the moon and guiding Aang and waterbenders across future journeys from the Spirit World."
+            ]
+          }
+        ]
+      },
+      "omashu": {
+        id: "ATLA-13",
+        title: "Omashu",
+        sections: [
+          {
+            heading: null, // Lead overview
+            paragraphs: [
+              "Omashu is the second largest city in the Earth Kingdom, situated dramatically atop a towering mountainous canyon. Founded centuries ago in honor of the star-crossed lovers Oma and Shu, the city is famous for its intricate delivery chutes and delivery cart system powered completely by earthbending gravity rails.",
+              "The eccentric King Bumi ruled Omashu for over a century. When Fire Nation forces invaded during the war, Bumi surrendered peacefully to wait for the proper tactical moment to strike, later liberating the entire city single-handedly during the Day of Black Sun eclipse."
+            ]
+          },
+          {
+            heading: "History",
+            paragraphs: [
+              "Legend holds that Oma and Shu learned earthbending from badgermoles and dug secret labyrinthine tunnels beneath the mountain to meet in secret. When Shu perished in war, Oma united their warring villages into Omashu. Renamed New Ozai during its brief imperial occupation, King Bumi retook every gate in eight minutes once the eclipse neutralized his captors."
+            ]
+          }
+        ]
+      },
+      "sun-warriors": {
+        id: "ATLA-14",
+        title: "Sun Warriors",
+        sections: [
+          {
+            heading: null, // Lead overview
+            paragraphs: [
+              "The Sun Warriors are an ancient society of firebenders believed by the modern Fire Nation to have been extinct for thousands of years. They were the original human civilization to learn firebending directly from the dragons.",
+              "Living covertly in ancient stone ziggurats, the Sun Warriors safeguard the Eternal Flame—the very first fire given to humanity by the dragons. When Aang and Zuko sought to restore their firebending, Chief of the Sun Warriors guided them through the Dancing Dragon ritual before masters Ran and Shaw."
+            ]
+          },
+          {
+            heading: "History",
+            paragraphs: [
+              "After dragon hunts drove their reptilian masters into hiding, the Sun Warriors feigned total societal collapse to protect the surviving dragons Ran and Shaw. They sustained harmony for millennia, preserving the holistic understanding of flame as energy and vitality until revealing their truth to Avatar Aang and Prince Zuko."
+            ]
+          }
+        ]
+      }
+    };
+
+    /* Common stop words permitted unmasked in Redactle */
+    const STOP_WORDS = new Set([
+      "the", "of", "and", "a", "to", "in", "is", "it", "that", "was", "for", 
+      "on", "are", "as", "with", "his", "they", "at", "be", "this", "have", 
+      "from", "or", "one", "had", "has", "by", "word", "but", "not", "what", "all", 
+      "were", "we", "when", "your", "can", "said", "there", "use", "an", 
+      "each", "which", "she", "do", "how", "their", "if", "into", "he", "him", 
+      "her", "its", "so", "up", "out", "about", "who", "whom", "my", "me", "no"
+    ]);
+
+    // Game State
+    let currentArticleData = null;
+    let titleTokenList = [];
+    let sectionStructure = [];
+    let guessedWords = new Set();
+    let guessHistory = [];
+    let isGameOver = false;
+    let wordIndexMap = new Map();
+
+    // Cycling Occurrence State
+    let activeCycleWord = null;
+    let activeCycleIndex = -1;
+
+    // Timer State
+    let timerInterval = null;
+    let elapsedSeconds = 0;
+
+    // DOM Elements
+    const articleTitleContainer = document.getElementById("articleTitleContainer");
+    const articleFullBody = document.getElementById("articleFullBody");
+    const articleScrollContainer = document.getElementById("articleScrollContainer");
+    const guessForm = document.getElementById("guessForm");
+    const guessInput = document.getElementById("guessInput");
+    const feedbackMsg = document.getElementById("feedbackMessage");
+    const statGuessCount = document.getElementById("statGuessCount");
+    const statHitCount = document.getElementById("statHitCount");
+    const statAccuracy = document.getElementById("statAccuracy");
+    const statTotalWords = document.getElementById("statTotalWords");
+    const statRedactedWords = document.getElementById("statRedactedWords");
+    const gameTimerEl = document.getElementById("gameTimer");
+    const guessHistoryBody = document.getElementById("guessHistoryBody");
+    const historyBadge = document.getElementById("historyBadge");
+    const articleDropdown = document.getElementById("articleDropdown");
+    const articleSourceBadge = document.getElementById("articleSourceBadge");
+    const articleMetaHeading = document.getElementById("articleMetaHeading");
+    const activeCycleIndicator = document.getElementById("activeCycleIndicator");
+
+    const btnRandomCurated = document.getElementById("btnRandomCurated");
+    const btnFetchLiveWiki = document.getElementById("btnFetchLiveWiki");
+    const liveSpinner = document.getElementById("liveSpinner");
+    const liveIcon = document.getElementById("liveIcon");
+    const btnGiveUp = document.getElementById("btnGiveUp");
+
+    const winModal = document.getElementById("winModal");
+    const winArticleTitle = document.getElementById("winArticleTitle");
+    const winTotalGuesses = document.getElementById("winTotalGuesses");
+    const winAccuracy = document.getElementById("winAccuracy");
+    const winTime = document.getElementById("winTime");
+    const btnWinNextRandom = document.getElementById("btnWinNextRandom");
+    const btnWinInspect = document.getElementById("btnWinInspect");
+
+    function cleanWord(str) {
+      return str.toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      elapsedSeconds = 0;
+      updateTimerDisplay();
+      timerInterval = setInterval(() => {
+        elapsedSeconds++;
+        updateTimerDisplay();
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+    }
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(elapsedSeconds / 60).toString().padStart(2, '0');
+      const secs = (elapsedSeconds % 60).toString().padStart(2, '0');
+      gameTimerEl.textContent = `${mins}:${secs}`;
+    }
+
+    function tokenizeText(rawText, isTitle = false, isHeading = false) {
+      const regex = /([a-zA-Z0-9]+|[^a-zA-Z0-9\s]+|\s+)/g;
+      const tokens = [];
+      let match;
+
+      while ((match = regex.exec(rawText)) !== null) {
+        const text = match[0];
+        if (/^\s+$/.test(text)) {
+          tokens.push({ type: 'whitespace', raw: text });
+        } else if (/^[a-zA-Z0-9]+$/.test(text)) {
+          const norm = text.toLowerCase();
+          const isStop = (!isTitle && !isHeading) && STOP_WORDS.has(norm);
+          tokens.push({
+            type: 'word',
+            raw: text,
+            normalized: norm,
+            length: text.length,
+            isRedacted: !isStop,
+            isStopWord: isStop,
+            isTitle: isTitle,
+            isHeading: isHeading,
+            id: 'tok_' + Math.random().toString(36).substring(2, 11)
+          });
+        } else {
+          tokens.push({ type: 'punct', raw: text });
+        }
+      }
+      return tokens;
+    }
+
+    function createTokenElement(token) {
+      if (token.type === 'whitespace') {
+        return document.createTextNode(token.raw);
+      }
+      if (token.type === 'punct') {
+        const span = document.createElement('span');
+        span.textContent = token.raw;
+        span.className = "text-stone-400 select-text font-mono";
+        return span;
+      }
+
+      // Word Token
+      const span = document.createElement('span');
+      span.id = token.id;
+      span.setAttribute('data-word', token.normalized);
+
+      if (token.isRedacted && !isGameOver) {
+        // PROPORTIONAL BADGE: Dynamically sized via CSS var
+        span.style.setProperty('--char-len', token.length);
+        span.className = 'word-token redacted';
+        span.textContent = token.length; // strictly number only
+      } else {
+        span.className = 'word-token revealed';
+        span.textContent = token.raw;
+        if (token.isTitle) {
+          span.classList.add('text-amber-200', 'font-bold');
+        } else if (token.isHeading) {
+          span.classList.add('text-amber-300', 'font-semibold');
+        }
+      }
+      return span;
+    }
+
+    function renderEntireArticle() {
+      articleTitleContainer.innerHTML = '';
+      articleFullBody.innerHTML = '';
+
+      // Title
+      titleTokenList.forEach(token => {
+        articleTitleContainer.appendChild(createTokenElement(token));
+      });
+
+      // Render All Sections: Lead Section (heading === null) first, followed by remaining sections
+      sectionStructure.forEach((section, idx) => {
+        const sectionWrap = document.createElement('div');
+        sectionWrap.className = 'space-y-4';
+
+        if (section.headingTokens && section.headingTokens.length > 0) {
+          const h3 = document.createElement('h3');
+          h3.className = 'text-xl font-cinzel font-bold text-amber-300 pt-3 pb-1 border-b border-[#242938] flex flex-wrap gap-1.5 items-center';
+          section.headingTokens.forEach(t => h3.appendChild(createTokenElement(t)));
+          sectionWrap.appendChild(h3);
+        } else if (idx === 0) {
+          // Explicit label for opening lead section
+          const leadIndicator = document.createElement('div');
+          leadIndicator.className = 'text-[11px] uppercase tracking-wider text-amber-500/80 font-mono font-semibold';
+          leadIndicator.textContent = 'Lead Overview';
+          sectionWrap.appendChild(leadIndicator);
+        }
+
+        section.paragraphTokens.forEach(paraTokens => {
+          const p = document.createElement('p');
+          p.className = 'leading-relaxed text-[#ded5c2] tracking-wide select-text';
+          paraTokens.forEach(t => p.appendChild(createTokenElement(t)));
+          sectionWrap.appendChild(p);
+        });
+
+        articleFullBody.appendChild(sectionWrap);
+      });
+
+      updateStats();
+    }
+
+    function updateStats() {
+      let total = 0;
+      let redacted = 0;
+
+      const allTokens = [
+        ...titleTokenList,
+        ...sectionStructure.flatMap(s => [
+          ...(s.headingTokens || []),
+          ...s.paragraphTokens.flat()
+        ])
+      ];
+
+      allTokens.forEach(t => {
+        if (t.type === 'word') {
+          total++;
+          if (t.isRedacted) redacted++;
+        }
+      });
+
+      statTotalWords.textContent = total;
+      statRedactedWords.textContent = isGameOver ? 0 : redacted;
+      statGuessCount.textContent = guessHistory.length;
+
+      const successful = guessHistory.filter(g => g.hits > 0).length;
+      statHitCount.textContent = successful;
+
+      const acc = guessHistory.length > 0 
+        ? Math.round((successful / guessHistory.length) * 100) 
+        : 0;
+      statAccuracy.textContent = `${acc}%`;
+    }
+
+    function loadArticle(articleData, isLive = false) {
+      currentArticleData = articleData;
+      isGameOver = false;
+      guessedWords.clear();
+      guessHistory = [];
+      wordIndexMap.clear();
+      activeCycleWord = null;
+      activeCycleIndex = -1;
+      activeCycleIndicator.classList.add('hidden');
+
+      articleMetaHeading.textContent = isLive 
+        ? `LIVE FANDOM WIKI: ${articleData.title.toUpperCase()}` 
+        : `ARCHIVE: ${articleData.id || 'CANONICAL'}`;
+      
+      articleSourceBadge.textContent = isLive ? "LIVE FANDOM API" : "CANONICAL ENCYCLOPEDIA";
+      articleSourceBadge.className = isLive 
+        ? "hidden sm:inline-block text-[10px] font-mono uppercase bg-red-950/60 text-amber-300 px-2 py-0.5 rounded border border-amber-500/40"
+        : "hidden sm:inline-block text-[10px] font-mono uppercase bg-[#1f2330] text-stone-400 px-2 py-0.5 rounded border border-[#2e3447]";
+
+      // Tokenize Title
+      titleTokenList = tokenizeText(articleData.title, true, false);
+
+      // Tokenize Sections (Including Lead Section & History)
+      sectionStructure = articleData.sections.map(sec => ({
+        headingTokens: sec.heading ? tokenizeText(sec.heading, false, true) : null,
+        paragraphTokens: sec.paragraphs.map(p => tokenizeText(p, false, false))
+      }));
+
+      // Index tokens for instant lookup
+      const allTokens = [
+        ...titleTokenList,
+        ...sectionStructure.flatMap(s => [
+          ...(s.headingTokens || []),
+          ...s.paragraphTokens.flat()
+        ])
+      ];
+
+      allTokens.forEach(tok => {
+        if (tok.type === 'word') {
+          if (!wordIndexMap.has(tok.normalized)) {
+            wordIndexMap.set(tok.normalized, []);
+          }
+          wordIndexMap.get(tok.normalized).push(tok);
+        }
+      });
+
+      renderHistory();
+      renderEntireArticle();
+      articleScrollContainer.scrollTop = 0;
+      startTimer();
+      setFeedback("Article ready. Proportional badges show character count. Lead section is unmasked at the top!", "text-stone-300");
+      guessInput.value = "";
+      guessInput.focus();
+    }
+
+    function handleGuess(rawWord) {
+      if (!rawWord || !rawWord.trim() || isGameOver) return;
+      const guess = cleanWord(rawWord.trim());
+
+      if (!guess) {
+        setFeedback("Please enter letters or numbers only.", "text-amber-400");
+        return;
+      }
+
+      if (guessedWords.has(guess)) {
+        setFeedback(`"${guess}" was already guessed. Cycling next occurrence...`, "text-amber-300");
+        cycleOccurrences(guess);
+        return;
+      }
+
+      guessedWords.add(guess);
+      const matches = wordIndexMap.get(guess) || [];
+      const hitCount = matches.length;
+
+      // Reveal all instances
+      matches.forEach(tok => {
+        tok.isRedacted = false;
+        const el = document.getElementById(tok.id);
+        if (el) {
+          el.className = 'word-token revealed newly-revealed';
+          el.textContent = tok.raw;
+          el.style.width = 'auto'; // release fixed badge width on reveal
+          if (tok.isTitle) {
+            el.classList.add('text-amber-200', 'font-bold');
+          } else if (tok.isHeading) {
+            el.classList.add('text-amber-300', 'font-semibold');
+          }
+        }
+      });
+
+      // Record in history
+      guessHistory.unshift({
+        guessNum: guessHistory.length + 1,
+        word: guess,
+        hits: hitCount
+      });
+
+      renderHistory();
+      updateStats();
+
+      if (hitCount > 0) {
+        setFeedback(`Hit! "${guess}" appears ${hitCount} time${hitCount > 1 ? 's' : ''}.`, "text-emerald-400 font-bold");
+        cycleOccurrences(guess, true);
+      } else {
+        setFeedback(`"${guess}" does not appear in this article.`, "text-stone-400");
+        clearCycleHighlights();
+      }
+
+      // Check Win Condition: Title words all unredacted
+      const titleWords = titleTokenList.filter(t => t.type === 'word');
+      const allTitleRevealed = titleWords.every(t => !t.isRedacted);
+
+      if (allTitleRevealed && !isGameOver) {
+        triggerWin();
+      }
+    }
+
+    function cycleOccurrences(word, isFirstHit = false) {
+      const matches = wordIndexMap.get(word);
+      if (!matches || matches.length === 0) {
+        clearCycleHighlights();
+        return;
+      }
+
+      if (activeCycleWord !== word) {
+        activeCycleWord = word;
+        activeCycleIndex = 0;
+      } else if (!isFirstHit) {
+        activeCycleIndex = (activeCycleIndex + 1) % matches.length;
+      }
+
+      // Clear previous active highlights
+      document.querySelectorAll('.active-occurrence').forEach(el => el.classList.remove('active-occurrence'));
+      document.querySelectorAll('.matched-cycle').forEach(el => el.classList.remove('matched-cycle'));
+
+      // Highlight all occurrences lightly
+      matches.forEach(tok => {
+        const el = document.getElementById(tok.id);
+        if (el) el.classList.add('matched-cycle');
+      });
+
+      // Highlight target active occurrence strongly and scroll into view
+      const activeTok = matches[activeCycleIndex];
+      const targetEl = document.getElementById(activeTok.id);
+
+      if (targetEl) {
+        targetEl.classList.add('active-occurrence');
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      activeCycleIndicator.classList.remove('hidden');
+      activeCycleIndicator.textContent = `Word "${word}": occurrence ${activeCycleIndex + 1} of ${matches.length}`;
+    }
+
+    function clearCycleHighlights() {
+      document.querySelectorAll('.active-occurrence').forEach(el => el.classList.remove('active-occurrence'));
+      document.querySelectorAll('.matched-cycle').forEach(el => el.classList.remove('matched-cycle'));
+      activeCycleIndicator.classList.add('hidden');
+      activeCycleWord = null;
+      activeCycleIndex = -1;
+    }
+
+    function setFeedback(msg, styleClass) {
+      feedbackMsg.textContent = msg;
+      feedbackMsg.className = `min-h-[1.5rem] mt-2 text-xs font-mono flex items-center ${styleClass}`;
+    }
+
+    function renderHistory() {
+      historyBadge.textContent = guessHistory.length;
+      if (guessHistory.length === 0) {
+        guessHistoryBody.innerHTML = `
+          <tr id="emptyHistoryRow">
+            <td colspan="3" class="text-center py-12 text-stone-500 italic">No guesses yet. Redacted numbers indicate letter count!</td>
+          </tr>`;
+        return;
+      }
+
+      guessHistoryBody.innerHTML = '';
+      guessHistory.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-[#191d2a] cursor-pointer transition';
+        tr.onclick = () => cycleOccurrences(item.word);
+
+        tr.innerHTML = `
+          <td class="py-2 px-3 text-stone-500">${item.guessNum}</td>
+          <td class="py-2 px-3 font-semibold ${item.hits > 0 ? 'text-amber-300' : 'text-stone-400'}">${item.word}</td>
+          <td class="py-2 px-3 text-right">
+            <span class="inline-block px-2 py-0.5 rounded text-[11px] ${
+              item.hits > 0 
+                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold' 
+                : 'text-stone-500'
+            }">
+              ${item.hits}
+            </span>
+          </td>
+        `;
+        guessHistoryBody.appendChild(tr);
+      });
+    }
+
+    function triggerWin() {
+      isGameOver = true;
+      stopTimer();
+
+      // Unredact whole article
+      const allTokens = [
+        ...titleTokenList,
+        ...sectionStructure.flatMap(s => [
+          ...(s.headingTokens || []),
+          ...s.paragraphTokens.flat()
+        ])
+      ];
+      allTokens.forEach(t => { if (t.type === 'word') t.isRedacted = false; });
+      renderEntireArticle();
+
+      winArticleTitle.textContent = currentArticleData.title;
+      winTotalGuesses.textContent = guessHistory.length;
+      const successful = guessHistory.filter(g => g.hits > 0).length;
+      const acc = guessHistory.length > 0 ? Math.round((successful / guessHistory.length) * 100) : 100;
+      winAccuracy.textContent = `${acc}%`;
+
+      const mins = Math.floor(elapsedSeconds / 60).toString().padStart(2, '0');
+      const secs = (elapsedSeconds % 60).toString().padStart(2, '0');
+      winTime.textContent = `${mins}:${secs}`;
+
+      setTimeout(() => {
+        winModal.classList.remove('hidden');
+        winModal.classList.add('flex');
+      }, 400);
+    }
+
+    function revealEntireArticle() {
+      if (isGameOver) return;
+      isGameOver = true;
+      stopTimer();
+
+      const allTokens = [
+        ...titleTokenList,
+        ...sectionStructure.flatMap(s => [
+          ...(s.headingTokens || []),
+          ...s.paragraphTokens.flat()
+        ])
+      ];
+      allTokens.forEach(t => { if (t.type === 'word') t.isRedacted = false; });
+      renderEntireArticle();
+      setFeedback(`Revealed! The article was "${currentArticleData.title}".`, "text-amber-300 font-bold");
+    }
+
+    async function fetchRandomLiveWikiArticle() {
+      liveSpinner.classList.remove('hidden');
+      liveIcon.classList.add('hidden');
+      btnFetchLiveWiki.disabled = true;
+      setFeedback("Querying Avatar Fandom API for a random canonical page...", "text-cyan-400");
+
+      try {
+        // Step 1: Query a random page from namespace 0
+        const randUrl = `https://avatar.fandom.com/api.php?action=query&list=random&rnnamespace=0&rnlimit=1&format=json&origin=*`;
+        const randRes = await fetch(randUrl);
+        if (!randRes.ok) throw new Error("Could not reach Avatar Wiki API");
+        const randData = await randRes.json();
+        const randomPage = randData.query?.random?.[0];
+
+        if (!randomPage || !randomPage.title) {
+          throw new Error("No page returned from random query");
+        }
+
+        const title = randomPage.title;
+        setFeedback(`Found "${title}". Downloading and parsing lead section and lore...`, "text-cyan-400");
+
+        // Step 2: Parse the full HTML of the target page
+        const parseUrl = `https://avatar.fandom.com/api.php?action=parse&page=${encodeURIComponent(title)}&prop=text&format=json&origin=*`;
+        const parseRes = await fetch(parseUrl);
+        if (!parseRes.ok) throw new Error("Could not fetch page contents");
+        const parseData = await parseRes.json();
+
+        const rawHtml = parseData.parse?.text?.['*'];
+        if (!rawHtml) throw new Error("Article content was empty");
+
+        // Step 3: DOM Parser & Sanitization (Carefully Preserving the Opening Lead Paragraphs)
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(rawHtml, 'text/html');
+
+        // Remove clutter elements
+        const stripSelectors = [
+          '.portable-infobox', '.navbox', '.toc', '.mw-editsection', '.reference',
+          'figure', '.gallery', '.audio', 'table', '.aside', 'script', 'style',
+          '.license-description', '.page-footer', '.wds-dropdown', '.category-page__header',
+          '.infobox', '.thumb'
+        ];
+        stripSelectors.forEach(sel => doc.querySelectorAll(sel).forEach(el => el.remove()));
+
+        // Extract sections & paragraphs, ensuring the lead section before the first heading is captured
+        const extractedSections = [];
+        let currentHeading = null; // null signifies the opening lead section
+        let currentParas = [];
+
+        const contentNodes = doc.querySelectorAll('h2, h3, p');
+
+        contentNodes.forEach(node => {
+          if (node.tagName === 'H2' || node.tagName === 'H3') {
+            const headingText = node.textContent.replace(/\[edit\]/gi, '').trim();
+            // Discard standard footer sections
+            if (/^(references|see also|external links|site navigation|gallery|trivia)$/i.test(headingText)) {
+              return;
+            }
+            if (currentParas.length > 0) {
+              extractedSections.push({ heading: currentHeading, paragraphs: [...currentParas] });
+              currentParas = [];
+            }
+            currentHeading = headingText;
+          } else if (node.tagName === 'P') {
+            const cleanP = node.textContent.trim().replace(/\s+/g, ' ');
+            if (cleanP.length > 35) {
+              currentParas.push(cleanP);
+            }
+          }
+        });
+
+        if (currentParas.length > 0) {
+          extractedSections.push({ heading: currentHeading, paragraphs: [...currentParas] });
+        }
+
+        if (extractedSections.length === 0 || extractedSections.flatMap(s => s.paragraphs).length === 0) {
+          throw new Error("Article too short or contains no readable text");
+        }
+
+        const liveArticle = {
+          id: `FANDOM-${randomPage.id || 'LIVE'}`,
+          title: parseData.parse.title.replace(/\s*\(.*?\)\s*/g, '').trim(),
+          sections: extractedSections
+        };
+
+        loadArticle(liveArticle, true);
+        setFeedback(`Loaded live article: "${liveArticle.title}". Lead summary and all sections redacted!`, "text-emerald-400 font-semibold");
+
+      } catch (err) {
+        console.warn("Live API fetch fallback triggered:", err);
+        setFeedback(`Wiki API Notice: ${err.message}. Falling back to bundled canon pool.`, "text-amber-300");
+        pickRandomCuratedArticle();
+      } finally {
+        liveSpinner.classList.add('hidden');
+        liveIcon.classList.remove('hidden');
+        btnFetchLiveWiki.disabled = false;
+      }
+    }
+
+    function pickRandomCuratedArticle() {
+      const keys = Object.keys(COMPREHENSIVE_ARTICLES);
+      const randKey = keys[Math.floor(Math.random() * keys.length)];
+      articleDropdown.value = randKey;
+      loadArticle(COMPREHENSIVE_ARTICLES[randKey], false);
+    }
+
+    guessForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const val = guessInput.value;
+      handleGuess(val);
+      guessInput.value = "";
+    });
+
+    articleDropdown.addEventListener("change", (e) => {
+      const key = e.target.value;
+      if (COMPREHENSIVE_ARTICLES[key]) {
+        loadArticle(COMPREHENSIVE_ARTICLES[key], false);
+      }
+    });
+
+    btnRandomCurated.addEventListener("click", () => {
+      pickRandomCuratedArticle();
+    });
+
+    btnFetchLiveWiki.addEventListener("click", () => {
+      fetchRandomLiveWikiArticle();
+    });
+
+    btnGiveUp.addEventListener("click", () => {
+      revealEntireArticle();
+    });
+
+    btnWinNextRandom.addEventListener("click", () => {
+      winModal.classList.add('hidden');
+      winModal.classList.remove('flex');
+      pickRandomCuratedArticle();
+    });
+
+    btnWinInspect.addEventListener("click", () => {
+      winModal.classList.add('hidden');
+      winModal.classList.remove('flex');
+    });
+
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !winModal.classList.contains('hidden')) {
+        winModal.classList.add('hidden');
+        winModal.classList.remove('flex');
+      }
+    });
+
+    // Initialize with Zuko canonical article
+    window.addEventListener("DOMContentLoaded", () => {
+      loadArticle(COMPREHENSIVE_ARTICLES["zuko"], false);
+    });
+  </script>
+</body>
+</html>
