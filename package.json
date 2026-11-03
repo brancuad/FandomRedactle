@@ -2,7 +2,7 @@
   "name": "fandomredactle",
   "version": "1.0.0",
   "description": "",
-  "homepage": "https://<your-github-username>.github.io/fandomredactle",
+  "homepage": "https://brancuad.github.io/FandomRedactle",
   "main": "index.js",
   "scripts": {
     "dev": "vite",
