@@ -9,6 +9,7 @@ import { SUPPORTED_FANDOMS } from './data/fandoms';
 import { CURATED_ARTICLES_BY_FANDOM } from './data/curatedArticles';
 import { cleanWord, tokenizeText, getWordConjugations } from './utils/tokenizer';
 import { fetchRandomWikiArticle, fetchWikiArticle } from './utils/fandomApi';
+import { fastScrollToElement } from './utils/scroll';
 
 const PLACEHOLDER_ARTICLE: Article = {
   id: 'INITIAL',
@@ -195,13 +196,8 @@ export const App: React.FC = () => {
     setActiveCycleIndex(nextIndex);
     setActiveTokenId(targetTok.id);
 
-    // Smooth scroll to target element
-    setTimeout(() => {
-      const el = document.getElementById(targetTok.id);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }, 50);
+    // Fast, responsive smooth scroll to target element
+    fastScrollToElement(targetTok.id);
   }, [allWordTokens, activeCycleWord, activeCycleIndex]);
 
   // Handle Guess Submission
@@ -256,12 +252,10 @@ export const App: React.FC = () => {
       setActiveCycleIndex(0);
       setActiveTokenId(firstTarget.id);
 
-      setTimeout(() => {
-        const el = document.getElementById(firstTarget.id);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }, 70);
+      // Smoothly scroll to the first revealed hit
+      requestAnimationFrame(() => {
+        fastScrollToElement(firstTarget.id);
+      });
     } else {
       setFeedback({
         message: `Zero hits for "${normalized}".`,
