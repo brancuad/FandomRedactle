@@ -6,6 +6,7 @@ import { FINAL_FANTASY_CURATED_ARTICLES } from './finalFantasyArticles';
 import { AMAZING_RACE_CURATED_ARTICLES } from './amazingRaceArticles';
 import { BROADWAY_CURATED_ARTICLES } from './broadwayArticles';
 import { DISNEY_CURATED_ARTICLES } from './disneyArticles';
+import { GLEE_CURATED_ARTICLES } from './gleeArticles';
 
 export const CURATED_ARTICLES_BY_FANDOM: Record<string, string[]> = {
   atla: ATLA_CURATED_ARTICLES,
@@ -15,5 +16,6 @@ export const CURATED_ARTICLES_BY_FANDOM: Record<string, string[]> = {
   finalfantasy: FINAL_FANTASY_CURATED_ARTICLES,
   amazingrace: AMAZING_RACE_CURATED_ARTICLES,
   broadway: BROADWAY_CURATED_ARTICLES,
-  disney: DISNEY_CURATED_ARTICLES
+  disney: DISNEY_CURATED_ARTICLES,
+  glee: GLEE_CURATED_ARTICLES
 };

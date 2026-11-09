@@ -64,5 +64,13 @@ export const SUPPORTED_FANDOMS: FandomConfig[] = [
     apiDomain: 'disney.fandom.com',
     themeBadge: 'bg-purple-500/10 text-purple-400 border-purple-500/30',
     tagline: 'When you wish upon a star. Animated classics, Pixar, and legends.'
+  },
+  {
+    id: 'glee',
+    name: 'Glee',
+    icon: '🎤',
+    apiDomain: 'glee.fandom.com',
+    themeBadge: 'bg-red-500/10 text-red-400 border-red-500/30',
+    tagline: "Don't Stop Believin'. New Directions, showstoppers, slushies, and McKinley High."
   }
 ];
