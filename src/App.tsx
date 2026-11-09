@@ -38,15 +38,6 @@ export const App: React.FC = () => {
     return [SUPPORTED_FANDOMS[0].id];
   });
 
-  // Mystery Mode State (hides fandom name/theme until solved)
-  const [mysteryMode, setMysteryMode] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('fandom_mystery_mode') === 'true';
-    } catch (e) {
-      return false;
-    }
-  });
-
   // Persist selected fandoms
   useEffect(() => {
     try {
@@ -339,11 +330,8 @@ export const App: React.FC = () => {
 
     setCurrentFandom(chosenFandom);
 
-    const isMystery = mysteryMode && selectedFandomIds.length > 1 && !targetFandom;
     setFeedback({
-      message: isMystery
-        ? `Fetching random article from 1 of ${selectedFandomIds.length} mystery universes...`
-        : `Fetching a random article from ${chosenFandom.name}...`,
+      message: 'Fetching a random article...',
       type: 'info'
     });
 
@@ -360,9 +348,7 @@ export const App: React.FC = () => {
 
       loadArticle(article, chosenFandom);
       setFeedback({
-        message: isMystery
-          ? `Secret article loaded from 1 of ${selectedFandomIds.length} mystery universes! Redacted lore ready.`
-          : `New secret article from ${chosenFandom.name} ready! All title words and lore are redacted. Good luck!`,
+        message: 'New secret article loaded! All title words and lore are redacted. Good luck!',
         type: 'success'
       });
     } catch (err: any) {
@@ -404,7 +390,7 @@ export const App: React.FC = () => {
     }
 
     setFeedback({
-      message: `Loading article from ${matchedFandom.name}...`,
+      message: `Loading article...`,
       type: 'info'
     });
 
@@ -501,16 +487,6 @@ export const App: React.FC = () => {
             handleFetchRandom(found);
           }
         }}
-        mysteryMode={mysteryMode}
-        onToggleMysteryMode={() => {
-          setMysteryMode(prev => {
-            const next = !prev;
-            try {
-              localStorage.setItem('fandom_mystery_mode', String(next));
-            } catch (e) {}
-            return next;
-          });
-        }}
         onFetchNewRandom={() => handleFetchRandom()}
         onFetchCustom={handleFetchCustom}
         isLoading={isLoading}
@@ -538,7 +514,6 @@ export const App: React.FC = () => {
           onNextArticle={() => handleFetchRandom()}
           cycleInfo={cycleInfo}
           currentFandom={currentFandom}
-          mysteryMode={mysteryMode}
           selectedFandomCount={selectedFandomIds.length}
         />
 

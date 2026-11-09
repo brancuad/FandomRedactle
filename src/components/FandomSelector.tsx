@@ -9,8 +9,6 @@ export interface FandomSelectorProps {
   onToggleFandom: (fandomId: string) => void;
   onSelectAll: () => void;
   onSelectOnly: (fandomId: string) => void;
-  mysteryMode: boolean;
-  onToggleMysteryMode: () => void;
   onRollRandom: () => void;
   currentFandom: FandomConfig;
   isGameOver: boolean;
@@ -22,8 +20,6 @@ export const FandomSelector: React.FC<FandomSelectorProps> = ({
   onToggleFandom,
   onSelectAll,
   onSelectOnly,
-  mysteryMode,
-  onToggleMysteryMode,
   onRollRandom,
   currentFandom,
   isGameOver
@@ -68,20 +64,6 @@ export const FandomSelector: React.FC<FandomSelectorProps> = ({
 
   // Trigger button label and icon
   const getButtonDisplay = () => {
-    if (mysteryMode && !isGameOver && selectedFandomIds.length > 1) {
-      return {
-        icon: <Dices className="w-3.5 h-3.5 text-purple-400" />,
-        label: `Mystery Fandom`,
-        badge: `${selectedFandomIds.length} sources`
-      };
-    }
-    if (allSelected) {
-      return {
-        icon: <Globe className="w-3.5 h-3.5 text-amber-400" />,
-        label: `All Fandoms`,
-        badge: `${fandoms.length}/${fandoms.length}`
-      };
-    }
     if (singleSelected) {
       const singleFandom = fandoms.find(f => f.id === selectedFandomIds[0]) || currentFandom;
       return {
@@ -90,15 +72,18 @@ export const FandomSelector: React.FC<FandomSelectorProps> = ({
         badge: '1 source'
       };
     }
-    // Multiple selected
-    const firstFandom = fandoms.find(f => f.id === selectedFandomIds[0]);
-    const label = firstFandom
-      ? `${firstFandom.name.split(' ')[0]} +${selectedFandomIds.length - 1} more`
-      : `${selectedFandomIds.length} Fandoms`;
+
+    if (allSelected) {
+      return {
+        icon: <Globe className="w-3.5 h-3.5 text-amber-400" />,
+        label: 'All Fandoms',
+        badge: `${fandoms.length} sources`
+      };
+    }
 
     return {
       icon: <Dices className="w-3.5 h-3.5 text-amber-400" />,
-      label,
+      label: `${selectedFandomIds.length} Fandoms Selected`,
       badge: `${selectedFandomIds.length} sources`
     };
   };
@@ -166,11 +151,14 @@ export const FandomSelector: React.FC<FandomSelectorProps> = ({
                 <span className="text-stone-600">|</span>
                 <button
                   type="button"
-                  onClick={() => onSelectOnly(currentFandom.id)}
+                  onClick={() => {
+                    const first = fandoms[0]?.id;
+                    if (first) onSelectOnly(first);
+                  }}
                   className="px-2 py-0.5 rounded font-mono text-stone-300 hover:text-amber-300 hover:bg-[#222738] transition"
-                  title="Select only current fandom"
+                  title="Reset to first fandom only"
                 >
-                  Only Active
+                  Reset (1)
                 </button>
               </div>
             </div>
@@ -212,6 +200,7 @@ export const FandomSelector: React.FC<FandomSelectorProps> = ({
             {filteredFandoms.map(fandom => {
               const isChecked = selectedFandomIds.includes(fandom.id);
               const articleCount = CURATED_ARTICLES_BY_FANDOM[fandom.id]?.length || 0;
+              const isRevealedTarget = isGameOver && fandom.id === currentFandom.id;
 
               return (
                 <div
@@ -244,9 +233,9 @@ export const FandomSelector: React.FC<FandomSelectorProps> = ({
                     <div className="min-w-0">
                       <div className="text-xs font-semibold text-stone-200 truncate flex items-center gap-1.5">
                         <span>{fandom.name}</span>
-                        {fandom.id === currentFandom.id && (
-                          <span className="text-[9px] px-1 py-0.2 rounded bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 font-mono">
-                            playing
+                        {isRevealedTarget && (
+                          <span className="text-[9px] px-1 py-0.2 rounded bg-amber-500/20 border border-amber-500/30 text-amber-300 font-mono">
+                            revealed
                           </span>
                         )}
                       </div>
@@ -274,50 +263,26 @@ export const FandomSelector: React.FC<FandomSelectorProps> = ({
             })}
           </div>
 
-          {/* Footer controls: Mystery mode & Roll action */}
-          <div className="p-3 bg-[#151825] border-t border-[#252a3b] space-y-2.5">
-            {/* Mystery Source Mode Toggle */}
-            <label className="flex items-center justify-between cursor-pointer group">
-              <div>
-                <div className="text-xs font-medium text-stone-200 group-hover:text-amber-200 flex items-center gap-1.5">
-                  <span>Mystery Source Mode</span>
-                  <span className="text-[10px] px-1 py-0.2 rounded bg-purple-500/20 text-purple-300 font-mono font-bold">
-                    hard
-                  </span>
-                </div>
-                <div className="text-[10px] text-stone-400">
-                  Hides which wiki universe was chosen until article is revealed
-                </div>
-              </div>
-              <input
-                type="checkbox"
-                checked={mysteryMode}
-                onChange={onToggleMysteryMode}
-                className="w-4 h-4 accent-amber-500 cursor-pointer rounded bg-[#0d0f17] border-[#2e3547]"
-              />
-            </label>
-
-            {/* Action Button: Roll Random Article */}
-            <div className="flex items-center gap-2 pt-1">
-              <button
-                type="button"
-                onClick={() => {
-                  onRollRandom();
-                  setIsOpen(false);
-                }}
-                className="flex-1 py-1.5 px-3 bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-500 hover:to-red-500 text-stone-950 font-bold text-xs rounded-lg transition shadow-md flex items-center justify-center gap-1.5"
-              >
-                <Shuffle className="w-3.5 h-3.5" />
-                <span>Roll From Selected ({selectedFandomIds.length})</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                className="py-1.5 px-2.5 bg-[#202536] hover:bg-[#2b3146] text-stone-300 text-xs rounded-lg transition"
-              >
-                Done
-              </button>
-            </div>
+          {/* Footer controls: Roll action */}
+          <div className="p-3 bg-[#151825] border-t border-[#252a3b] flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                onRollRandom();
+                setIsOpen(false);
+              }}
+              className="flex-1 py-1.5 px-3 bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-500 hover:to-red-500 text-stone-950 font-bold text-xs rounded-lg transition shadow-md flex items-center justify-center gap-1.5"
+            >
+              <Shuffle className="w-3.5 h-3.5" />
+              <span>Roll From Selected ({selectedFandomIds.length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="py-1.5 px-2.5 bg-[#202536] hover:bg-[#2b3146] text-stone-300 text-xs rounded-lg transition"
+            >
+              Done
+            </button>
           </div>
         </div>
       )}

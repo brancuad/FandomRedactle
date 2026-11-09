@@ -22,7 +22,6 @@ interface ArticleViewProps {
   onNextArticle?: () => void;
   cycleInfo?: { current: number; total: number } | null;
   currentFandom?: FandomConfig;
-  mysteryMode?: boolean;
   selectedFandomCount?: number;
 }
 
@@ -43,7 +42,6 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
   onNextArticle,
   cycleInfo,
   currentFandom,
-  mysteryMode = false,
   selectedFandomCount = 1
 }) => {
   const [copied, setCopied] = useState(false);
@@ -112,8 +110,6 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
     );
   };
 
-  const isMysteryActive = mysteryMode && !isGameOver && selectedFandomCount > 1;
-
   return (
     <section className="lg:col-span-8 bg-[#12141d] border border-[#212534] rounded-xl shadow-2xl flex flex-col overflow-hidden min-h-[750px] max-h-[88vh]">
       
@@ -125,16 +121,12 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
             {isGameOver ? `ARTICLE: ${article.title.toUpperCase()}` : 'LORE ENCYCLOPEDIA ARCHIVE'}
           </span>
 
-          {/* Fandom Badge */}
-          {isMysteryActive ? (
-            <span className="px-2 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-[10px] font-mono flex items-center gap-1 font-semibold">
-              <span>🎲</span> Mystery Universe ({selectedFandomCount} sources)
-            </span>
-          ) : currentFandom ? (
-            <span className={`px-2 py-0.5 rounded-full border text-[10px] font-mono flex items-center gap-1 font-semibold ${currentFandom.themeBadge}`}>
+          {/* Fandom Source: completely hidden during gameplay, only shown once revealed */}
+          {isGameOver && currentFandom && (
+            <span className={`px-2 py-0.5 rounded-full border text-[10px] font-mono flex items-center gap-1 font-semibold animate-in fade-in duration-300 ${currentFandom.themeBadge}`}>
               <span>{currentFandom.icon}</span> {currentFandom.name}
             </span>
-          ) : null}
+          )}
         </div>
 
         <div className="flex items-center gap-4 text-xs font-mono text-stone-400">
@@ -158,7 +150,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
               <h3 className="text-lg font-cinzel font-bold text-amber-100 flex items-center gap-2 flex-wrap">
                 <span>{article.title}</span>
                 {currentFandom && (
-                  <span className={`px-2 py-0.5 rounded-full border text-[10px] font-sans font-semibold tracking-normal ${currentFandom.themeBadge}`}>
+                  <span className={`px-2 py-0.5 rounded-full border text-[11px] font-sans font-semibold tracking-normal ${currentFandom.themeBadge}`}>
                     {currentFandom.icon} {currentFandom.name}
                   </span>
                 )}
@@ -209,7 +201,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
         
         {/* Full Article Text with Floated Image */}
         <div>
-          {/* Article Image from Wiki Site (Revealed when game over) */}
+          {/* Article Image from Wiki Site (Revealed only when game over) */}
           {isGameOver && article.imageUrl && (
             <div className="float-right ml-6 mb-4 max-w-[280px] sm:max-w-[320px] bg-[#161925] border border-amber-500/30 rounded-xl p-2.5 shadow-2xl animate-in fade-in zoom-in-95 duration-500">
               <img
