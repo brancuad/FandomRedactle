@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Trophy, Eye, Share2, Check, ArrowRight } from 'lucide-react';
-import { Article, Token } from '../types';
+import { Article, Token, FandomConfig } from '../types';
 
 interface ArticleViewProps {
   article: Article;
@@ -21,6 +21,9 @@ interface ArticleViewProps {
   accuracy?: number;
   onNextArticle?: () => void;
   cycleInfo?: { current: number; total: number } | null;
+  currentFandom?: FandomConfig;
+  mysteryMode?: boolean;
+  selectedFandomCount?: number;
 }
 
 export const ArticleView: React.FC<ArticleViewProps> = ({
@@ -38,12 +41,16 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
   totalGuesses = 0,
   accuracy = 0,
   onNextArticle,
-  cycleInfo
+  cycleInfo,
+  currentFandom,
+  mysteryMode = false,
+  selectedFandomCount = 1
 }) => {
   const [copied, setCopied] = useState(false);
 
   const handleShare = () => {
-    const shareText = `🧩 Fandom Redactle Solved!\nArticle: "${article.title}"\nGuesses: ${totalGuesses}\nAccuracy: ${accuracy}%\nTime: ${formattedTime}`;
+    const fandomInfo = currentFandom ? ` (${currentFandom.name})` : '';
+    const shareText = `🧩 Fandom Redactle Solved!\nArticle: "${article.title}"${fandomInfo}\nGuesses: ${totalGuesses}\nAccuracy: ${accuracy}%\nTime: ${formattedTime}`;
     navigator.clipboard.writeText(shareText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -105,16 +112,29 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
     );
   };
 
+  const isMysteryActive = mysteryMode && !isGameOver && selectedFandomCount > 1;
+
   return (
     <section className="lg:col-span-8 bg-[#12141d] border border-[#212534] rounded-xl shadow-2xl flex flex-col overflow-hidden min-h-[750px] max-h-[88vh]">
       
       {/* Article Status Bar */}
       <div className="px-5 py-3 bg-[#161924] border-b border-[#212534] flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center space-x-2 text-xs">
+        <div className="flex items-center space-x-2 text-xs flex-wrap">
           <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
           <span className="font-mono text-stone-300 text-[11px] uppercase tracking-wider font-semibold">
             {isGameOver ? `ARTICLE: ${article.title.toUpperCase()}` : 'LORE ENCYCLOPEDIA ARCHIVE'}
           </span>
+
+          {/* Fandom Badge */}
+          {isMysteryActive ? (
+            <span className="px-2 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-[10px] font-mono flex items-center gap-1 font-semibold">
+              <span>🎲</span> Mystery Universe ({selectedFandomCount} sources)
+            </span>
+          ) : currentFandom ? (
+            <span className={`px-2 py-0.5 rounded-full border text-[10px] font-mono flex items-center gap-1 font-semibold ${currentFandom.themeBadge}`}>
+              <span>{currentFandom.icon}</span> {currentFandom.name}
+            </span>
+          ) : null}
         </div>
 
         <div className="flex items-center gap-4 text-xs font-mono text-stone-400">
@@ -124,7 +144,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
         </div>
       </div>
 
-      {/* Inline Victory / Revealed Card (Replaces intrusive modal) */}
+      {/* Inline Victory / Revealed Card */}
       {isGameOver && (
         <div className="mx-6 mt-4 p-4 rounded-xl bg-gradient-to-r from-amber-950/60 via-[#1a1d29] to-[#141724] border border-amber-500/50 shadow-xl flex flex-wrap items-center justify-between gap-4 animate-in fade-in duration-300">
           <div className="flex items-center gap-3.5">
@@ -135,8 +155,13 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
               <div className="text-xs uppercase font-mono tracking-wider text-amber-400 font-semibold">
                 {isWon ? 'Honor Restored!' : 'Article Revealed'}
               </div>
-              <h3 className="text-lg font-cinzel font-bold text-amber-100">
-                {article.title}
+              <h3 className="text-lg font-cinzel font-bold text-amber-100 flex items-center gap-2 flex-wrap">
+                <span>{article.title}</span>
+                {currentFandom && (
+                  <span className={`px-2 py-0.5 rounded-full border text-[10px] font-sans font-semibold tracking-normal ${currentFandom.themeBadge}`}>
+                    {currentFandom.icon} {currentFandom.name}
+                  </span>
+                )}
               </h3>
               <div className="flex items-center gap-3 text-xs font-mono text-stone-300 mt-1">
                 <span>Guesses: <strong className="text-amber-300">{totalGuesses}</strong></span>

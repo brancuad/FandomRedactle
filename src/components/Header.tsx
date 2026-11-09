@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
-import { Globe, Flag, Loader2, Search, X } from 'lucide-react';
+import { Flag, Loader2, Search, X, Shuffle } from 'lucide-react';
 import { FandomConfig } from '../types';
+import { FandomSelector } from './FandomSelector';
 
 interface HeaderProps {
   currentFandom: FandomConfig;
-  onSelectFandom: (fandom: FandomConfig) => void;
+  selectedFandomIds: string[];
   fandoms: FandomConfig[];
+  onToggleFandom: (fandomId: string) => void;
+  onSelectAllFandoms: () => void;
+  onSelectOnlyFandom: (fandomId: string) => void;
+  mysteryMode: boolean;
+  onToggleMysteryMode: () => void;
   onFetchNewRandom: () => void;
   onFetchCustom: (titleOrUrl: string) => void;
   isLoading: boolean;
@@ -15,8 +21,13 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   currentFandom,
-  onSelectFandom,
+  selectedFandomIds,
   fandoms,
+  onToggleFandom,
+  onSelectAllFandoms,
+  onSelectOnlyFandom,
+  mysteryMode,
+  onToggleMysteryMode,
   onFetchNewRandom,
   onFetchCustom,
   isLoading,
@@ -34,37 +45,43 @@ export const Header: React.FC<HeaderProps> = ({
     setSearchQuery('');
   };
 
+  const isMysteryActive = mysteryMode && !isGameOver && selectedFandomIds.length > 1;
+
   return (
     <header className="border-b border-[#212635] bg-[#11131c]/95 sticky top-0 z-40 backdrop-blur-md">
       <div className="max-w-[1700px] mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
         
-        {/* Brand & Fandom selector */}
+        {/* Brand & Multi-Fandom Selector */}
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600 via-red-600 to-cyan-700 flex items-center justify-center shadow-lg shadow-amber-900/30 ring-1 ring-amber-500/30 font-bold text-amber-100 text-lg">
-            {currentFandom.icon}
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600 via-red-600 to-cyan-700 flex items-center justify-center shadow-lg shadow-amber-900/30 ring-1 ring-amber-500/30 font-bold text-amber-100 text-lg transition-all">
+            {isMysteryActive ? '🎲' : currentFandom.icon}
           </div>
 
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <h1 className="text-lg font-cinzel font-bold tracking-wider text-amber-200">
                 FANDOM <span className="text-amber-500 text-[11px] px-1.5 py-0.5 rounded border border-amber-500/30 bg-amber-500/10 font-sans tracking-normal font-semibold">REDACTLE</span>
               </h1>
               
-              {/* Multi-fandom selector */}
-              <select
-                value={currentFandom.id}
-                onChange={(e) => {
-                  const found = fandoms.find(f => f.id === e.target.value);
-                  if (found) onSelectFandom(found);
-                }}
-                className="text-xs bg-[#1a1d29] border border-[#2e3547] text-amber-300 rounded px-2 py-0.5 font-medium cursor-pointer focus:outline-none focus:border-amber-500"
-              >
-                {fandoms.map(f => (
-                  <option key={f.id} value={f.id}>{f.name}</option>
-                ))}
-              </select>
+              {/* Multi-Fandom Selector Dropdown */}
+              <FandomSelector
+                fandoms={fandoms}
+                selectedFandomIds={selectedFandomIds}
+                onToggleFandom={onToggleFandom}
+                onSelectAll={onSelectAllFandoms}
+                onSelectOnly={onSelectOnlyFandom}
+                mysteryMode={mysteryMode}
+                onToggleMysteryMode={onToggleMysteryMode}
+                onRollRandom={onFetchNewRandom}
+                currentFandom={currentFandom}
+                isGameOver={isGameOver}
+              />
             </div>
-            <p className="text-[11px] text-stone-400 hidden sm:block">{currentFandom.tagline}</p>
+            <p className="text-[11px] text-stone-400 hidden sm:block">
+              {isMysteryActive
+                ? `Random pool: ${selectedFandomIds.length} mystery universes active`
+                : currentFandom.tagline}
+            </p>
           </div>
         </div>
 
@@ -78,9 +95,9 @@ export const Header: React.FC<HeaderProps> = ({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="e.g. Kolau Mountain Range"
+                placeholder={`Search ${currentFandom.name} or paste wiki URL...`}
                 autoFocus
-                className="bg-transparent text-amber-200 text-xs focus:outline-none w-44 sm:w-56"
+                className="bg-transparent text-amber-200 text-xs focus:outline-none w-48 sm:w-64"
               />
               <button type="submit" className="text-amber-400 hover:text-amber-300 px-1 font-bold">
                 Load
@@ -97,7 +114,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={() => setShowSearch(true)}
               className="px-2.5 py-1.5 bg-[#171a25] hover:bg-[#222736] text-stone-300 rounded-lg border border-[#2c3243] transition flex items-center gap-1.5 font-medium"
-              title="Search a specific wiki article"
+              title="Search a specific wiki article or paste URL"
             >
               <Search className="w-3.5 h-3.5 text-amber-400" />
               <span>Load Article</span>
@@ -109,13 +126,21 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={onFetchNewRandom}
             disabled={isLoading}
             className="px-3.5 py-1.5 bg-gradient-to-r from-amber-600/25 to-red-600/25 hover:from-amber-600/35 hover:to-red-600/35 text-amber-300 rounded-lg border border-amber-500/40 transition flex items-center gap-1.5 font-medium shadow-sm disabled:opacity-50"
+            title={selectedFandomIds.length > 1 ? `Randomize from ${selectedFandomIds.length} selected fandoms` : 'Fetch new random article'}
           >
             {isLoading ? (
               <Loader2 className="w-3.5 h-3.5 text-amber-300 animate-spin" />
             ) : (
-              <Globe className="w-3.5 h-3.5 text-amber-300" />
+              <Shuffle className="w-3.5 h-3.5 text-amber-300" />
             )}
-            <span>Random Article</span>
+            <span>
+              Random Article
+              {selectedFandomIds.length > 1 && (
+                <span className="ml-1 text-[10px] text-amber-400/80 font-mono">
+                  ({selectedFandomIds.length})
+                </span>
+              )}
+            </span>
           </button>
 
           {/* Give up button */}

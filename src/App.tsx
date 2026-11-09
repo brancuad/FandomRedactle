@@ -22,8 +22,43 @@ const PLACEHOLDER_ARTICLE: Article = {
 };
 
 export const App: React.FC = () => {
-  // Fandom & Article State
-  const [currentFandom, setCurrentFandom] = useState<FandomConfig>(SUPPORTED_FANDOMS[0]);
+  // Multi-Fandom Selection State
+  const [selectedFandomIds, setSelectedFandomIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('fandom_selected_sources');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const valid = parsed.filter(id => SUPPORTED_FANDOMS.some(f => f.id === id));
+          if (valid.length > 0) return valid;
+        }
+      }
+    } catch (e) {}
+    // Default to Avatar initially, or whatever active puzzle was
+    return [SUPPORTED_FANDOMS[0].id];
+  });
+
+  // Mystery Mode State (hides fandom name/theme until solved)
+  const [mysteryMode, setMysteryMode] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('fandom_mystery_mode') === 'true';
+    } catch (e) {
+      return false;
+    }
+  });
+
+  // Persist selected fandoms
+  useEffect(() => {
+    try {
+      localStorage.setItem('fandom_selected_sources', JSON.stringify(selectedFandomIds));
+    } catch (e) {}
+  }, [selectedFandomIds]);
+
+  // Current Article Fandom & Article State
+  const [currentFandom, setCurrentFandom] = useState<FandomConfig>(() => {
+    const firstSelected = SUPPORTED_FANDOMS.find(f => f.id === selectedFandomIds[0]);
+    return firstSelected || SUPPORTED_FANDOMS[0];
+  });
   const [currentArticle, setCurrentArticle] = useState<Article>(PLACEHOLDER_ARTICLE);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -67,7 +102,8 @@ export const App: React.FC = () => {
   }, [elapsedSeconds]);
 
   // Load article helper
-  const loadArticle = useCallback((article: Article) => {
+  const loadArticle = useCallback((article: Article, fandom?: FandomConfig) => {
+    const activeFandom = fandom || currentFandom;
     setCurrentArticle(article);
     setIsGameOver(false);
     setIsWon(false);
@@ -79,8 +115,8 @@ export const App: React.FC = () => {
     try {
       localStorage.setItem('fandom_active_puzzle', JSON.stringify({
         title: article.title,
-        domain: currentFandom.apiDomain,
-        fandomId: currentFandom.id,
+        domain: activeFandom.apiDomain,
+        fandomId: activeFandom.id,
         articleId: article.id
       }));
 
@@ -265,7 +301,7 @@ export const App: React.FC = () => {
         });
       } catch (e) {}
       setFeedback({
-        message: `Honor Restored! You solved "${currentArticle.title}"! Full article unmasked below!`,
+        message: `Honor Restored! You solved "${currentArticle.title}" from ${currentFandom.name}! Full article unmasked below!`,
         type: 'success'
       });
     }
@@ -281,36 +317,52 @@ export const App: React.FC = () => {
       localStorage.removeItem('fandom_save_' + currentArticle.id);
     } catch (e) {}
     setFeedback({
-      message: `Revealed! The article was "${currentArticle.title}". Full article unmasked below!`,
+      message: `Revealed! The article was "${currentArticle.title}" from ${currentFandom.name}. Full article unmasked below!`,
       type: 'warn'
     });
   };
 
-  // Fetch New Random Article
-  const handleFetchRandom = async (fandom = currentFandom) => {
+  // Fetch New Random Article (from target fandom or randomly from selected fandoms)
+  const handleFetchRandom = async (targetFandom?: FandomConfig) => {
     setIsLoading(true);
     try {
       localStorage.removeItem('fandom_active_puzzle');
     } catch (e) {}
 
+    // Pick fandom from pool
+    let chosenFandom = targetFandom;
+    if (!chosenFandom) {
+      const activeFandoms = SUPPORTED_FANDOMS.filter(f => selectedFandomIds.includes(f.id));
+      const pool = activeFandoms.length > 0 ? activeFandoms : SUPPORTED_FANDOMS;
+      chosenFandom = pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    setCurrentFandom(chosenFandom);
+
+    const isMystery = mysteryMode && selectedFandomIds.length > 1 && !targetFandom;
     setFeedback({
-      message: `Fetching a random article from ${fandom.name}...`,
+      message: isMystery
+        ? `Fetching random article from 1 of ${selectedFandomIds.length} mystery universes...`
+        : `Fetching a random article from ${chosenFandom.name}...`,
       type: 'info'
     });
 
     try {
       let article: Article;
-      const curatedList = CURATED_ARTICLES_BY_FANDOM[fandom.id];
+      const curatedList = CURATED_ARTICLES_BY_FANDOM[chosenFandom.id];
       if (curatedList && curatedList.length > 0) {
         const randTitle = curatedList[Math.floor(Math.random() * curatedList.length)];
-        article = await fetchWikiArticle(randTitle, fandom.apiDomain);
+        article = await fetchWikiArticle(randTitle, chosenFandom.apiDomain);
       } else {
-        article = await fetchRandomWikiArticle(fandom.apiDomain);
+        article = await fetchRandomWikiArticle(chosenFandom.apiDomain);
       }
+      article.fandomId = chosenFandom.id;
 
-      loadArticle(article);
+      loadArticle(article, chosenFandom);
       setFeedback({
-        message: 'New secret article ready! All title words and lore are redacted. Good luck!',
+        message: isMystery
+          ? `Secret article loaded from 1 of ${selectedFandomIds.length} mystery universes! Redacted lore ready.`
+          : `New secret article from ${chosenFandom.name} ready! All title words and lore are redacted. Good luck!`,
         type: 'success'
       });
     } catch (err: any) {
@@ -332,11 +384,17 @@ export const App: React.FC = () => {
 
     let domain = currentFandom.apiDomain;
     let title = input.trim();
+    let matchedFandom = currentFandom;
 
     if (/https?:\/\//i.test(title)) {
       try {
         const parsed = new URL(title);
         domain = parsed.hostname;
+        const found = SUPPORTED_FANDOMS.find(f => f.apiDomain === parsed.hostname);
+        if (found) {
+          matchedFandom = found;
+          setCurrentFandom(found);
+        }
         const pathSegments = parsed.pathname.split('/').filter(Boolean);
         const wikiIdx = pathSegments.indexOf('wiki');
         if (wikiIdx !== -1 && pathSegments[wikiIdx + 1]) {
@@ -346,13 +404,14 @@ export const App: React.FC = () => {
     }
 
     setFeedback({
-      message: 'Loading article from wiki...',
+      message: `Loading article from ${matchedFandom.name}...`,
       type: 'info'
     });
 
     try {
       const article = await fetchWikiArticle(title, domain);
-      loadArticle(article);
+      article.fandomId = matchedFandom.id;
+      loadArticle(article, matchedFandom);
       setFeedback({
         message: 'Article loaded and redacted! Enter your guesses to reveal words.',
         type: 'success'
@@ -386,7 +445,8 @@ export const App: React.FC = () => {
             }
             setIsLoading(true);
             const article = await fetchWikiArticle(active.title, active.domain || foundFandom.apiDomain);
-            loadArticle(article);
+            article.fandomId = foundFandom.id;
+            loadArticle(article, foundFandom);
             setIsLoading(false);
             return;
           }
@@ -421,12 +481,37 @@ export const App: React.FC = () => {
       {/* Top Navigation */}
       <Header
         currentFandom={currentFandom}
-        onSelectFandom={(f) => {
-          setCurrentFandom(f);
-          handleFetchRandom(f);
-        }}
+        selectedFandomIds={selectedFandomIds}
         fandoms={SUPPORTED_FANDOMS}
-        onFetchNewRandom={() => handleFetchRandom(currentFandom)}
+        onToggleFandom={(id) => {
+          setSelectedFandomIds(prev =>
+            prev.includes(id)
+              ? prev.filter(fId => fId !== id)
+              : [...prev, id]
+          );
+        }}
+        onSelectAllFandoms={() => {
+          setSelectedFandomIds(SUPPORTED_FANDOMS.map(f => f.id));
+        }}
+        onSelectOnlyFandom={(id) => {
+          const found = SUPPORTED_FANDOMS.find(f => f.id === id);
+          setSelectedFandomIds([id]);
+          if (found) {
+            setCurrentFandom(found);
+            handleFetchRandom(found);
+          }
+        }}
+        mysteryMode={mysteryMode}
+        onToggleMysteryMode={() => {
+          setMysteryMode(prev => {
+            const next = !prev;
+            try {
+              localStorage.setItem('fandom_mystery_mode', String(next));
+            } catch (e) {}
+            return next;
+          });
+        }}
+        onFetchNewRandom={() => handleFetchRandom()}
         onFetchCustom={handleFetchCustom}
         isLoading={isLoading}
         onGiveUp={handleGiveUp}
@@ -450,8 +535,11 @@ export const App: React.FC = () => {
           isWon={isWon}
           totalGuesses={guessHistory.length}
           accuracy={accuracy}
-          onNextArticle={() => handleFetchRandom(currentFandom)}
+          onNextArticle={() => handleFetchRandom()}
           cycleInfo={cycleInfo}
+          currentFandom={currentFandom}
+          mysteryMode={mysteryMode}
+          selectedFandomCount={selectedFandomIds.length}
         />
 
         {/* Side Console & History Panel (Right 4 Columns) */}
