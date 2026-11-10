@@ -10,12 +10,20 @@ export const SUPPORTED_FANDOMS: FandomConfig[] = [
     tagline: 'Water. Earth. Fire. Air. The complete lore encyclopedia.'
   },
   {
-    id: 'bigbrother',
-    name: 'Big Brother (US & Canada)',
+    id: 'bbus',
+    name: 'Big Brother (US)',
     icon: '👁️',
     apiDomain: 'bigbrother.fandom.com',
     themeBadge: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30',
-    tagline: 'Expect the unexpected. Houseguests, twists, and seasons (US & CAN).'
+    tagline: 'Expect the unexpected. Houseguests, blindsides, and seasons (US).'
+  },
+  {
+    id: 'bbcan',
+    name: 'Big Brother Canada',
+    icon: '🍁',
+    apiDomain: 'bigbrother.fandom.com',
+    themeBadge: 'bg-red-500/10 text-red-400 border-red-500/30',
+    tagline: 'The Great White North house. Houseguests, twists, and seasons (BBCAN).'
   },
   {
     id: 'pokemon',

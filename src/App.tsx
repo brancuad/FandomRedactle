@@ -30,7 +30,8 @@ export const App: React.FC = () => {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          const valid = parsed.filter(id => SUPPORTED_FANDOMS.some(f => f.id === id));
+          const migrated = parsed.flatMap((id: string) => id === 'bigbrother' ? ['bbus', 'bbcan'] : [id]);
+          const valid = migrated.filter((id: string) => SUPPORTED_FANDOMS.some(f => f.id === id));
           if (valid.length > 0) return valid;
         }
       }

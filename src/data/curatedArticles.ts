@@ -1,5 +1,7 @@
 import { ATLA_CURATED_ARTICLES } from './atla500Articles';
 import { BIG_BROTHER_CURATED_ARTICLES } from './bigBrotherArticles';
+import { BIG_BROTHER_US_CURATED_ARTICLES } from './bigBrotherUsArticles';
+import { BIG_BROTHER_CAN_CURATED_ARTICLES } from './bigBrotherCanArticles';
 import { POKEMON_CURATED_ARTICLES } from './pokemonArticles';
 import { KINGDOM_HEARTS_CURATED_ARTICLES } from './kingdomHeartsArticles';
 import { FINAL_FANTASY_CURATED_ARTICLES } from './finalFantasyArticles';
@@ -10,6 +12,8 @@ import { GLEE_CURATED_ARTICLES } from './gleeArticles';
 
 export const CURATED_ARTICLES_BY_FANDOM: Record<string, string[]> = {
   atla: ATLA_CURATED_ARTICLES,
+  bbus: BIG_BROTHER_US_CURATED_ARTICLES,
+  bbcan: BIG_BROTHER_CAN_CURATED_ARTICLES,
   bigbrother: BIG_BROTHER_CURATED_ARTICLES,
   pokemon: POKEMON_CURATED_ARTICLES,
   kingdomhearts: KINGDOM_HEARTS_CURATED_ARTICLES,
