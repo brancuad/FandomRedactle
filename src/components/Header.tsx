@@ -48,7 +48,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Brand & Multi-Fandom Selector */}
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600 via-red-600 to-cyan-700 flex items-center justify-center shadow-lg shadow-amber-900/30 ring-1 ring-amber-500/30 font-bold text-amber-100 text-lg transition-all">
-            {isGameOver ? currentFandom.icon : '🧩'}
+            {!isLoading && isGameOver ? currentFandom.icon : '🧩'}
           </div>
 
           <div>
@@ -67,10 +67,11 @@ export const Header: React.FC<HeaderProps> = ({
                 onRollRandom={onFetchNewRandom}
                 currentFandom={currentFandom}
                 isGameOver={isGameOver}
+                isLoading={isLoading}
               />
             </div>
             <p className="text-[11px] text-stone-400 hidden sm:block">
-              {isGameOver
+              {!isLoading && isGameOver
                 ? `${currentFandom.name} • ${currentFandom.tagline}`
                 : 'The multi-fandom lore encyclopedia guessing game'}
             </p>

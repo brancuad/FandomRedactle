@@ -12,6 +12,7 @@ export interface FandomSelectorProps {
   onRollRandom: () => void;
   currentFandom: FandomConfig;
   isGameOver: boolean;
+  isLoading?: boolean;
 }
 
 export const FandomSelector: React.FC<FandomSelectorProps> = ({
@@ -22,7 +23,8 @@ export const FandomSelector: React.FC<FandomSelectorProps> = ({
   onSelectOnly,
   onRollRandom,
   currentFandom,
-  isGameOver
+  isGameOver,
+  isLoading = false
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
@@ -200,7 +202,7 @@ export const FandomSelector: React.FC<FandomSelectorProps> = ({
             {filteredFandoms.map(fandom => {
               const isChecked = selectedFandomIds.includes(fandom.id);
               const articleCount = CURATED_ARTICLES_BY_FANDOM[fandom.id]?.length || 0;
-              const isRevealedTarget = isGameOver && fandom.id === currentFandom.id;
+              const isRevealedTarget = !isLoading && isGameOver && fandom.id === currentFandom.id;
 
               return (
                 <div

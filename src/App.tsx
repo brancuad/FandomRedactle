@@ -510,6 +510,7 @@ export const App: React.FC = () => {
           cycleInfo={cycleInfo}
           currentFandom={currentFandom}
           selectedFandomCount={selectedFandomIds.length}
+          isLoading={isLoading}
         />
 
         {/* Side Console & History Panel (Right 4 Columns) */}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trophy, Eye, Share2, Check, ArrowRight } from 'lucide-react';
+import { Trophy, Eye, Share2, Check, ArrowRight, Loader2 } from 'lucide-react';
 import { Article, Token, FandomConfig } from '../types';
 
 interface ArticleViewProps {
@@ -23,6 +23,7 @@ interface ArticleViewProps {
   cycleInfo?: { current: number; total: number } | null;
   currentFandom?: FandomConfig;
   selectedFandomCount?: number;
+  isLoading?: boolean;
 }
 
 export const ArticleView: React.FC<ArticleViewProps> = ({
@@ -42,7 +43,8 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
   onNextArticle,
   cycleInfo,
   currentFandom,
-  selectedFandomCount = 1
+  selectedFandomCount = 1,
+  isLoading = false
 }) => {
   const [copied, setCopied] = useState(false);
 
@@ -118,11 +120,15 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
         <div className="flex items-center space-x-2 text-xs flex-wrap">
           <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
           <span className="font-mono text-stone-300 text-[11px] uppercase tracking-wider font-semibold">
-            {isGameOver ? `ARTICLE: ${article.title.toUpperCase()}` : 'LORE ENCYCLOPEDIA ARCHIVE'}
+            {isLoading
+              ? 'FETCHING SECRET ARTICLE...'
+              : isGameOver
+                ? `ARTICLE: ${article.title.toUpperCase()}`
+                : 'LORE ENCYCLOPEDIA ARCHIVE'}
           </span>
 
-          {/* Fandom Source: completely hidden during gameplay, only shown once revealed */}
-          {isGameOver && currentFandom && (
+          {/* Fandom Source: completely hidden during gameplay and while loading, only shown once revealed */}
+          {!isLoading && isGameOver && currentFandom && (
             <span className={`px-2 py-0.5 rounded-full border text-[10px] font-mono flex items-center gap-1 font-semibold animate-in fade-in duration-300 ${currentFandom.themeBadge}`}>
               <span>{currentFandom.icon}</span> {currentFandom.name}
             </span>
@@ -137,7 +143,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
       </div>
 
       {/* Inline Victory / Revealed Card */}
-      {isGameOver && (
+      {!isLoading && isGameOver && (
         <div className="mx-6 mt-4 p-4 rounded-xl bg-gradient-to-r from-amber-950/60 via-[#1a1d29] to-[#141724] border border-amber-500/50 shadow-xl flex flex-wrap items-center justify-between gap-4 animate-in fade-in duration-300">
           <div className="flex items-center gap-3.5">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-600 to-yellow-400 text-stone-950 flex items-center justify-center font-bold text-xl shadow-lg shadow-amber-500/20">
@@ -197,12 +203,23 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
       </div>
 
       {/* Scrollable Article Body */}
-      <div id="articleScrollContainer" className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6 text-[15px] leading-relaxed text-[#dcd4c3]">
+      <div id="articleScrollContainer" className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6 text-[15px] leading-relaxed text-[#dcd4c3] relative">
+        {isLoading && (
+          <div className="absolute inset-0 bg-[#12141d]/85 backdrop-blur-[2px] z-30 flex flex-col items-center justify-center gap-3 animate-in fade-in duration-200">
+            <Loader2 className="w-8 h-8 text-amber-400 animate-spin" />
+            <p className="font-mono text-sm text-amber-200 font-semibold tracking-wider uppercase">
+              Loading New Article...
+            </p>
+            <p className="text-xs text-stone-400">
+              Redacting lore entries & preparing secret puzzle
+            </p>
+          </div>
+        )}
         
         {/* Full Article Text with Floated Image */}
         <div>
           {/* Article Image from Wiki Site (Revealed only when game over) */}
-          {isGameOver && article.imageUrl && (
+          {!isLoading && isGameOver && article.imageUrl && (
             <div className="float-right ml-6 mb-4 max-w-[280px] sm:max-w-[320px] bg-[#161925] border border-amber-500/30 rounded-xl p-2.5 shadow-2xl animate-in fade-in zoom-in-95 duration-500">
               <img
                 src={article.imageUrl}
