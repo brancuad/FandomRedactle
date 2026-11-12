@@ -61,7 +61,8 @@ export const SUPPORTED_FANDOMS: FandomConfig[] = [
     id: 'broadway',
     name: 'Broadway',
     icon: '🎭',
-    apiDomain: 'broadway.fandom.com',
+    apiDomain: 'en.wikipedia.org',
+    sourceType: 'wikipedia',
     themeBadge: 'bg-rose-500/10 text-rose-400 border-rose-500/30',
     tagline: 'The bright lights of theatre: musicals, legends, and showstoppers.'
   },
@@ -69,7 +70,8 @@ export const SUPPORTED_FANDOMS: FandomConfig[] = [
     id: 'disney',
     name: 'Disney',
     icon: '🏰',
-    apiDomain: 'disney.fandom.com',
+    apiDomain: 'en.wikipedia.org',
+    sourceType: 'wikipedia',
     themeBadge: 'bg-purple-500/10 text-purple-400 border-purple-500/30',
     tagline: 'When you wish upon a star. Animated classics, Pixar, and legends.'
   },

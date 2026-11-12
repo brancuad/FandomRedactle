@@ -335,9 +335,9 @@ export const App: React.FC = () => {
       const curatedList = CURATED_ARTICLES_BY_FANDOM[chosenFandom.id];
       if (curatedList && curatedList.length > 0) {
         const randTitle = curatedList[Math.floor(Math.random() * curatedList.length)];
-        article = await fetchWikiArticle(randTitle, chosenFandom.apiDomain);
+        article = await fetchWikiArticle(randTitle, chosenFandom.apiDomain, chosenFandom.sourceType);
       } else {
-        article = await fetchRandomWikiArticle(chosenFandom.apiDomain);
+        article = await fetchRandomWikiArticle(chosenFandom.apiDomain, chosenFandom.sourceType);
       }
       article.fandomId = chosenFandom.id;
 
@@ -384,13 +384,17 @@ export const App: React.FC = () => {
       } catch (e) {}
     }
 
+    // Infer sourceType from matched fandom, or fall back based on domain
+    const sourceType = matchedFandom.sourceType ??
+      (domain === 'en.wikipedia.org' ? 'wikipedia' : 'fandom');
+
     setFeedback({
       message: `Loading article...`,
       type: 'info'
     });
 
     try {
-      const article = await fetchWikiArticle(title, domain);
+      const article = await fetchWikiArticle(title, domain, sourceType);
       article.fandomId = matchedFandom.id;
       loadArticle(article, matchedFandom);
       setFeedback({
@@ -425,7 +429,7 @@ export const App: React.FC = () => {
               setCurrentFandom(foundFandom);
             }
             setIsLoading(true);
-            const article = await fetchWikiArticle(active.title, active.domain || foundFandom.apiDomain);
+            const article = await fetchWikiArticle(active.title, active.domain || foundFandom.apiDomain, foundFandom.sourceType);
             article.fandomId = foundFandom.id;
             loadArticle(article, foundFandom);
             setIsLoading(false);

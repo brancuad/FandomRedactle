@@ -40,4 +40,6 @@ export interface FandomConfig {
   apiDomain: string;
   themeBadge: string;
   tagline: string;
+  /** Whether to fetch articles from Wikipedia instead of a Fandom wiki. Defaults to 'fandom'. */
+  sourceType?: 'fandom' | 'wikipedia';
 }

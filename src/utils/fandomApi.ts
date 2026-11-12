@@ -1,18 +1,35 @@
 import { Article, ArticleSection } from '../types';
 
+/** Which wiki backend to use when building API URLs. */
+export type WikiSourceType = 'fandom' | 'wikipedia';
+
 /**
- * Fetch and sanitize an article from a Fandom wiki by title, or pick a random page.
+ * Build the MediaWiki API base URL for the given domain and source type.
+ * - Fandom: https://<domain>/api.php
+ * - Wikipedia: https://<domain>/w/api.php
+ */
+function apiBase(domain: string, sourceType: WikiSourceType): string {
+  return sourceType === 'wikipedia'
+    ? `https://${domain}/w/api.php`
+    : `https://${domain}/api.php`;
+}
+
+/**
+ * Fetch and sanitize an article from a Fandom wiki or Wikipedia by title,
+ * or pick a random page when no title is given.
  */
 export async function fetchWikiArticle(
   title?: string,
-  domain = 'avatar.fandom.com'
+  domain = 'avatar.fandom.com',
+  sourceType: WikiSourceType = 'fandom'
 ): Promise<Article> {
   let targetTitle = title;
   let pageId = 'LIVE';
+  const base = apiBase(domain, sourceType);
 
   // Step 1: If no title is specified, query a random page from namespace 0
   if (!targetTitle) {
-    const randUrl = `https://${domain}/api.php?action=query&list=random&rnnamespace=0&rnlimit=1&format=json&origin=*`;
+    const randUrl = `${base}?action=query&list=random&rnnamespace=0&rnlimit=1&format=json&origin=*`;
     const randRes = await fetch(randUrl);
     if (!randRes.ok) throw new Error(`Failed to query ${domain}`);
     const randData = await randRes.json();
@@ -30,7 +47,7 @@ export async function fetchWikiArticle(
   }
 
   // Step 2: Fetch parsed HTML for target article
-  const parseUrl = `https://${domain}/api.php?action=parse&page=${encodeURIComponent(targetTitle)}&prop=text&redirects=1&format=json&origin=*`;
+  const parseUrl = `${base}?action=parse&page=${encodeURIComponent(targetTitle)}&prop=text&redirects=1&format=json&origin=*`;
   const parseRes = await fetch(parseUrl);
   if (!parseRes.ok) throw new Error(`Failed to fetch article content for ${targetTitle}`);
   const parseData = await parseRes.json();
@@ -50,24 +67,33 @@ export async function fetchWikiArticle(
   const parser = new DOMParser();
   const doc = parser.parseFromString(rawHtml, 'text/html');
 
-  // Extract main article hero image before stripping infoboxes
+  // Extract main article hero image before stripping infoboxes.
+  // Wikipedia uses .infobox-image/.infobox img; Fandom uses .portable-infobox.
   let imageUrl: string | undefined = undefined;
-  const imgCandidate = doc.querySelector<HTMLImageElement>(
-    '.portable-infobox figure.pi-image img, .pi-image-thumbnail, .portable-infobox img, .infobox img, figure.thumb img, .thumbimage'
-  );
+  const imgSelectors = sourceType === 'wikipedia'
+    ? '.infobox-image img, .infobox img, .thumb img'
+    : '.portable-infobox figure.pi-image img, .pi-image-thumbnail, .portable-infobox img, .infobox img, figure.thumb img, .thumbimage';
+  const imgCandidate = doc.querySelector<HTMLImageElement>(imgSelectors);
   if (imgCandidate) {
     const src = imgCandidate.getAttribute('data-src') || imgCandidate.getAttribute('src') || '';
     if (src && !src.startsWith('data:')) {
-      imageUrl = src.replace(/\/scale-to-width-down\/\d+/, '/scale-to-width-down/600');
+      // Fandom uses scale-to-width-down; Wikipedia images are already full-size
+      imageUrl = sourceType === 'fandom'
+        ? src.replace(/\/scale-to-width-down\/\d+/, '/scale-to-width-down/600')
+        : src;
     }
   }
 
-  // Strip unwanted elements
+  // Strip unwanted elements — Wikipedia adds a few extra noisy ones
   const stripSelectors = [
     '.portable-infobox', 'aside', '.navbox', '.toc', '#toc', '.mw-editsection',
     '.reference', 'figure', '.gallery', '.audio', 'table', 'script', 'style',
     '.license-description', '.page-footer', '.wds-dropdown', '.category-page__header',
-    '.infobox', '.thumb', '.messagebox', '#icons', '.mw-empty-elt'
+    '.infobox', '.thumb', '.messagebox', '#icons', '.mw-empty-elt',
+    // Wikipedia-specific noise
+    '.hatnote', '.mw-references-wrap', '.refbegin', '.reflist',
+    '.sistersitebox', '.noprint', '.mbox-small', '.ambox', '.tmbox',
+    '.cmbox', '.ombox', '.fmbox', '.dmbox'
   ];
   stripSelectors.forEach(sel => doc.querySelectorAll(sel).forEach(el => el.remove()));
 
@@ -223,5 +249,6 @@ export async function fetchWikiArticle(
   };
 }
 
-// Backward compatible alias
-export const fetchRandomWikiArticle = (domain?: string) => fetchWikiArticle(undefined, domain);
+/** Backward-compatible alias: fetch a random article from a Fandom or Wikipedia domain. */
+export const fetchRandomWikiArticle = (domain?: string, sourceType?: WikiSourceType) =>
+  fetchWikiArticle(undefined, domain, sourceType);
