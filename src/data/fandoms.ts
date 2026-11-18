@@ -82,5 +82,13 @@ export const SUPPORTED_FANDOMS: FandomConfig[] = [
     apiDomain: 'glee.fandom.com',
     themeBadge: 'bg-red-500/10 text-red-400 border-red-500/30',
     tagline: "Don't Stop Believin'. New Directions, showstoppers, slushies, and McKinley High."
+  },
+  {
+    id: 'dragonage',
+    name: 'Dragon Age',
+    icon: '🐉',
+    apiDomain: 'dragonage.fandom.com',
+    themeBadge: 'bg-red-700/10 text-red-400 border-red-600/30',
+    tagline: 'In War, Victory. In Peace, Vigilance. In Death, Sacrifice. The complete Thedas lore.'
   }
 ];

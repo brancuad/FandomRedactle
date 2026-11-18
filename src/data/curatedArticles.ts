@@ -9,6 +9,7 @@ import { AMAZING_RACE_CURATED_ARTICLES } from './amazingRaceArticles';
 import { BROADWAY_CURATED_ARTICLES } from './broadwayArticles';
 import { DISNEY_CURATED_ARTICLES } from './disneyArticles';
 import { GLEE_CURATED_ARTICLES } from './gleeArticles';
+import { DRAGON_AGE_CURATED_ARTICLES } from './dragonAgeArticles';
 
 export const CURATED_ARTICLES_BY_FANDOM: Record<string, string[]> = {
   atla: ATLA_CURATED_ARTICLES,
@@ -21,5 +22,6 @@ export const CURATED_ARTICLES_BY_FANDOM: Record<string, string[]> = {
   amazingrace: AMAZING_RACE_CURATED_ARTICLES,
   broadway: BROADWAY_CURATED_ARTICLES,
   disney: DISNEY_CURATED_ARTICLES,
-  glee: GLEE_CURATED_ARTICLES
+  glee: GLEE_CURATED_ARTICLES,
+  dragonage: DRAGON_AGE_CURATED_ARTICLES
 };
