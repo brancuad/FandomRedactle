@@ -70,17 +70,44 @@ export async function fetchWikiArticle(
   // Extract main article hero image before stripping infoboxes.
   // Wikipedia uses .infobox-image/.infobox img; Fandom uses .portable-infobox.
   let imageUrl: string | undefined = undefined;
-  const imgSelectors = sourceType === 'wikipedia'
-    ? '.infobox-image img, .infobox img, .thumb img'
-    : '.portable-infobox figure.pi-image img, .pi-image-thumbnail, .portable-infobox img, .infobox img, figure.thumb img, .thumbimage';
-  const imgCandidate = doc.querySelector<HTMLImageElement>(imgSelectors);
-  if (imgCandidate) {
-    const src = imgCandidate.getAttribute('data-src') || imgCandidate.getAttribute('src') || '';
-    if (src && !src.startsWith('data:')) {
-      // Fandom uses scale-to-width-down; Wikipedia images are already full-size
-      imageUrl = sourceType === 'fandom'
-        ? src.replace(/\/scale-to-width-down\/\d+/, '/scale-to-width-down/600')
-        : src;
+  if (sourceType === 'wikipedia') {
+    const imgCandidate = doc.querySelector<HTMLImageElement>('.infobox-image img, .infobox img, .thumb img');
+    if (imgCandidate) {
+      const src = imgCandidate.getAttribute('data-src') || imgCandidate.getAttribute('src') || '';
+      if (src && !src.startsWith('data:')) imageUrl = src;
+    }
+  } else {
+    // Fandom: prefer images explicitly marked data-relevant="1" (the article's actual portrait),
+    // then fall back to any infobox image. This avoids picking up generic icon/badge images
+    // (data-relevant="0") that appear first in wikis like Dragon Age.
+    const fandomSelectors = [
+      '.portable-infobox img[data-relevant="1"]',
+      '.portable-infobox .pi-image-thumbnail',
+      '.portable-infobox figure.pi-image img',
+      '.portable-infobox img',
+      '.infobox img',
+      'figure.thumb img',
+      '.thumbimage',
+    ];
+    let imgCandidate: HTMLImageElement | null = null;
+    for (const sel of fandomSelectors) {
+      imgCandidate = doc.querySelector<HTMLImageElement>(sel);
+      // Skip base64 placeholders (lazy-load stubs)
+      if (imgCandidate) {
+        const candidateSrc = imgCandidate.getAttribute('src') || '';
+        if (candidateSrc.startsWith('data:')) {
+          imgCandidate = null;
+          continue;
+        }
+        break;
+      }
+    }
+    if (imgCandidate) {
+      // Prefer src (already resolved) over data-src for Fandom article images
+      const src = imgCandidate.getAttribute('src') || imgCandidate.getAttribute('data-src') || '';
+      if (src && !src.startsWith('data:')) {
+        imageUrl = src.replace(/\/scale-to-width-down\/\d+/, '/scale-to-width-down/600');
+      }
     }
   }
 
