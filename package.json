@@ -9,7 +9,10 @@
     "build": "tsc && vite build",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "audit": "node scripts/auditArticles.mjs",
+    "audit:fast": "node scripts/auditArticles.mjs --mode=fast",
+    "fix": "node scripts/fixArticles.mjs"
   },
   "keywords": [],
   "author": "",
